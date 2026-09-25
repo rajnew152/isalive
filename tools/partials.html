@@ -1,0 +1,127 @@
+
+<!-- ======================================================================= -->
+<!-- Client-only UI. On the reference site these nodes are created in the      -->
+<!-- browser (React portals / hydration), so they are absent from the SSR DOM. -->
+<!-- ======================================================================= -->
+
+<!-- ===== voice caption (portal under body, positioned by js/voice.js) ===== -->
+<p id="hero-caption" class="pointer-events-none fixed z-[999] max-w-[min(22rem,calc(100vw-2rem))] -translate-x-1/2 overflow-hidden whitespace-nowrap text-center text-[0.78rem] leading-snug text-foreground/80 [text-shadow:0_1px_8px_rgba(var(--bg-rgb),0.9)] md:max-w-[28rem] md:text-[0.88rem]" style="opacity:0;display:none"><span class="hero-caption-speaker mr-1.5 font-mono text-[9px] uppercase tracking-[0.16em] text-violet-400/70"></span><span class="hero-caption-text" aria-live="polite"></span></p>
+
+<!-- ===== header + staggered menu (portal) ===== -->
+<div id="staggered-menu" class="sm-scope fixed top-0 left-0 w-screen h-screen overflow-hidden pointer-events-none z-[9000]">
+  <div class="staggered-menu-wrapper pointer-events-none relative w-full h-full" style="--sm-accent:#8736f7" data-position="right">
+    <div class="sm-prelayers absolute top-0 right-0 bottom-0 pointer-events-none z-[5]" aria-hidden="true">
+      <div class="sm-prelayer absolute top-0 right-0 h-full w-full" style="background:#1e0840"></div>
+      <div class="sm-prelayer absolute top-0 right-0 h-full w-full" style="background:#130224"></div>
+    </div>
+    <header class="absolute top-0 left-0 w-full flex items-center justify-between page-gutter pt-5 pointer-events-none z-20 lg:pt-6" aria-label="Main navigation">
+      <div class="pointer-events-auto select-none"><a href="#hero" data-home-link><img alt="LIA logo" width="120" height="52" decoding="async" class="h-auto w-[4.75rem] sm:w-[5.5rem]" style="color:transparent" src="assets/lia.svg"/></a></div>
+      <div class="pointer-events-auto flex items-center gap-4">
+        <button type="button" aria-label="Open menu" aria-expanded="false" aria-controls="staggered-menu-panel" class="sm-toggle relative inline-flex items-center gap-[0.5rem] bg-transparent border-0 cursor-pointer font-bold text-[10px] sm:text-[12px] tracking-[0.22em] uppercase text-white leading-none overflow-visible transition-opacity hover:opacity-70">
+          <span class="relative inline-block h-[1em] overflow-hidden whitespace-nowrap" aria-hidden="true"><span class="sm-toggle-textInner flex flex-col leading-none"><span class="block h-[1em] leading-none">Menu</span><span class="block h-[1em] leading-none">Close</span></span></span>
+          <span class="sm-icon relative w-[14px] h-[14px] shrink-0 inline-flex items-center justify-center will-change-transform" aria-hidden="true"><span class="sm-icon-line absolute left-1/2 top-1/2 w-full h-[2px] bg-current rounded-sm -translate-x-1/2 -translate-y-1/2 will-change-transform"></span><span class="sm-icon-line sm-icon-line-v absolute left-1/2 top-1/2 w-full h-[2px] bg-current rounded-sm -translate-x-1/2 -translate-y-1/2 will-change-transform"></span></span>
+        </button>
+        <a href="https://www.lialive.ai/contact" class="sm-get-in-touch relative inline-flex h-7 sm:h-8 items-center justify-center rounded-full px-3 sm:px-5 text-[10px] sm:text-[12px] font-bold tracking-[0.18em] uppercase">Get in touch</a>
+        <span class="sm-extra" style="color:#ffffff;pointer-events:auto">
+          <button type="button" id="theme-toggle" aria-label="Switch to light mode" class="relative inline-flex h-7 w-7 sm:h-8 sm:w-8 shrink-0 items-center justify-center rounded-full border border-current/15 bg-current/[0.04] text-current transition-colors hover:bg-current/[0.09] top-[3px]">
+            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-sun absolute transition-all duration-300 scale-0 rotate-45 opacity-0" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2"></path><path d="M12 20v2"></path><path d="m4.93 4.93 1.41 1.41"></path><path d="m17.66 17.66 1.41 1.41"></path><path d="M2 12h2"></path><path d="M20 12h2"></path><path d="m6.34 17.66-1.41 1.41"></path><path d="m19.07 4.93-1.41 1.41"></path></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-moon absolute transition-all duration-300 scale-100 rotate-0 opacity-100" aria-hidden="true"><path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401"></path></svg>
+          </button>
+        </span>
+      </div>
+    </header>
+    <aside id="staggered-menu-panel" class="sm-panel absolute top-0 right-0 h-full flex flex-col overflow-y-auto z-10 pointer-events-auto" aria-hidden="true">
+      <div class="pointer-events-none absolute inset-0">
+        <div class="absolute inset-y-0 left-0 w-px bg-gradient-to-b from-transparent via-fuchsia-400/20 to-transparent"></div>
+        <div class="absolute right-[-6rem] top-24 h-52 w-52 rounded-full bg-fuchsia-600/8 blur-3xl"></div>
+      </div>
+      <div class="relative flex-1 flex flex-col justify-between px-10 sm:px-12 lg:px-14 pt-24 pb-10">
+        <ul class="sm-panel-list list-none m-0 p-0 flex flex-col" role="list">
+          <li class="sm-panel-itemWrap relative"><div class="overflow-hidden"><a class="sm-panel-item relative font-poppins font-bold cursor-pointer leading-[1.05] tracking-[-1.5px] uppercase inline-block no-underline" href="https://www.lialive.ai/solutions" aria-label="View solutions" data-index="1"><span class="sm-panel-itemLabel inline-block will-change-transform [transform-origin:50%_100%]">Solutions</span></a></div></li>
+          <li class="sm-panel-itemWrap relative"><div class="overflow-hidden"><a class="sm-panel-item relative font-poppins font-bold cursor-pointer leading-[1.05] tracking-[-1.5px] uppercase inline-block no-underline" href="https://www.lialive.ai/ai-products" aria-label="View AI products" data-index="2"><span class="sm-panel-itemLabel inline-block will-change-transform [transform-origin:50%_100%]">AI Products</span></a></div></li>
+          <li class="sm-panel-itemWrap relative">
+            <div class="overflow-hidden"><button type="button" class="sm-panel-item sm-panel-toggle relative font-poppins font-bold cursor-pointer leading-[1.05] tracking-[-1.5px] uppercase inline-flex items-center gap-[0.35em] bg-transparent border-0 p-0 text-left" aria-label="Browse industries" aria-expanded="false" aria-controls="sm-submenu-2" data-index="3"><span class="sm-panel-itemLabel inline-flex items-center gap-[0.3em] will-change-transform [transform-origin:50%_100%]">Industries<svg class="sm-panel-chevron" width="0.42em" height="0.42em" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2 4.5L7 9.5L12 4.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg></span></button></div>
+            <div class="sm-sub-wrap"><div class="sm-sub-clip" inert=""><ul id="sm-submenu-2" class="sm-sub-list list-none m-0 flex flex-col" role="list">
+              <li><a class="sm-sub-item block font-poppins no-underline" href="https://www.lialive.ai/industries/aviation" aria-label="View Aviation industry page">Aviation</a></li>
+              <li><a class="sm-sub-item block font-poppins no-underline" href="https://www.lialive.ai/industries/hospitality" aria-label="View Hospitality industry page">Hospitality</a></li>
+            </ul></div></div>
+          </li>
+          <li class="sm-panel-itemWrap relative"><div class="overflow-hidden"><a class="sm-panel-item relative font-poppins font-bold cursor-pointer leading-[1.05] tracking-[-1.5px] uppercase inline-block no-underline" href="https://www.lialive.ai/about" aria-label="Learn about us" data-index="4"><span class="sm-panel-itemLabel inline-block will-change-transform [transform-origin:50%_100%]">About us</span></a></div></li>
+          <li class="sm-panel-itemWrap relative"><div class="overflow-hidden"><a class="sm-panel-item relative font-poppins font-bold cursor-pointer leading-[1.05] tracking-[-1.5px] uppercase inline-block no-underline" href="https://www.lialive.ai/blog" aria-label="Read the LIA blog" data-index="5"><span class="sm-panel-itemLabel inline-block will-change-transform [transform-origin:50%_100%]">BLOG</span></a></div></li>
+          <li class="sm-panel-itemWrap relative"><div class="overflow-hidden"><a class="sm-panel-item relative font-poppins font-bold cursor-pointer leading-[1.05] tracking-[-1.5px] uppercase inline-block no-underline" href="https://www.lialive.ai/pricing" aria-label="View pricing plans" data-index="6"><span class="sm-panel-itemLabel inline-block will-change-transform [transform-origin:50%_100%]">Pricing</span></a></div></li>
+          <li class="sm-panel-itemWrap relative"><div class="overflow-hidden"><a class="sm-panel-item relative font-poppins font-bold cursor-pointer leading-[1.05] tracking-[-1.5px] uppercase inline-block no-underline" href="https://www.lialive.ai/faq" aria-label="Frequently asked questions" data-index="7"><span class="sm-panel-itemLabel inline-block will-change-transform [transform-origin:50%_100%]">FAQ</span></a></div></li>
+          <li class="sm-panel-itemWrap relative"><div class="overflow-hidden"><a class="sm-panel-item relative font-poppins font-bold cursor-pointer leading-[1.05] tracking-[-1.5px] uppercase inline-block no-underline" href="https://www.lialive.ai/contact" aria-label="Contact us" data-index="8"><span class="sm-panel-itemLabel inline-block will-change-transform [transform-origin:50%_100%]">Contact</span></a></div></li>
+        </ul>
+        <div class="pt-8 border-t border-white/[0.06]"><img alt="LIA logo" width="120" height="52" decoding="async" class="h-auto w-[5rem] opacity-40" style="color:transparent" src="assets/lia.svg"/></div>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<!-- ===== section dots navigation (desktop, hover devices only) ===== -->
+<nav id="section-nav" aria-label="Page sections" class="fixed right-0 top-1/2 z-40 hidden -translate-y-1/2 lg:block" style="display:none">
+  <span aria-hidden="true" class="fixed inset-y-0 right-0 w-5"></span>
+  <span aria-hidden="true" class="absolute right-0 top-1/2 h-[70vh] w-9 -translate-y-1/2"></span>
+  <ul class="relative flex flex-col items-end gap-0.5 py-2 pr-2.5" style="opacity:0;transform:translateX(8px)">
+    <li><button type="button" data-section="hero" aria-label="Scroll to Home" class="group/item flex cursor-pointer items-center justify-end gap-2.5 py-[5px]"><span class="sn-label whitespace-nowrap rounded-lg border px-3.5 py-2 text-xs font-semibold tracking-wide backdrop-blur-xl transition-colors duration-200" style="display:none">Home</span><span class="sn-dot h-[3px] rounded-full transition-all duration-300"></span></button></li>
+    <li><button type="button" data-section="features" aria-label="Scroll to Features" class="group/item flex cursor-pointer items-center justify-end gap-2.5 py-[5px]"><span class="sn-label whitespace-nowrap rounded-lg border px-3.5 py-2 text-xs font-semibold tracking-wide backdrop-blur-xl transition-colors duration-200" style="display:none">Features</span><span class="sn-dot h-[3px] rounded-full transition-all duration-300"></span></button></li>
+    <li><button type="button" data-section="section-gallery" aria-label="Scroll to Our Partners" class="group/item flex cursor-pointer items-center justify-end gap-2.5 py-[5px]"><span class="sn-label whitespace-nowrap rounded-lg border px-3.5 py-2 text-xs font-semibold tracking-wide backdrop-blur-xl transition-colors duration-200" style="display:none">Our Partners</span><span class="sn-dot h-[3px] rounded-full transition-all duration-300"></span></button></li>
+    <li><button type="button" data-section="section-cinematic-project" aria-label="Scroll to Industries" class="group/item flex cursor-pointer items-center justify-end gap-2.5 py-[5px]"><span class="sn-label whitespace-nowrap rounded-lg border px-3.5 py-2 text-xs font-semibold tracking-wide backdrop-blur-xl transition-colors duration-200" style="display:none">Industries</span><span class="sn-dot h-[3px] rounded-full transition-all duration-300"></span></button></li>
+    <li><button type="button" data-section="section-faq" aria-label="Scroll to FAQs" class="group/item flex cursor-pointer items-center justify-end gap-2.5 py-[5px]"><span class="sn-label whitespace-nowrap rounded-lg border px-3.5 py-2 text-xs font-semibold tracking-wide backdrop-blur-xl transition-colors duration-200" style="display:none">FAQs</span><span class="sn-dot h-[3px] rounded-full transition-all duration-300"></span></button></li>
+    <li><button type="button" data-section="roi-calculator" aria-label="Scroll to ROI Calculator" class="group/item flex cursor-pointer items-center justify-end gap-2.5 py-[5px]"><span class="sn-label whitespace-nowrap rounded-lg border px-3.5 py-2 text-xs font-semibold tracking-wide backdrop-blur-xl transition-colors duration-200" style="display:none">ROI Calculator</span><span class="sn-dot h-[3px] rounded-full transition-all duration-300"></span></button></li>
+    <li><button type="button" data-section="testimonials" aria-label="Scroll to Testimonials" class="group/item flex cursor-pointer items-center justify-end gap-2.5 py-[5px]"><span class="sn-label whitespace-nowrap rounded-lg border px-3.5 py-2 text-xs font-semibold tracking-wide backdrop-blur-xl transition-colors duration-200" style="display:none">Testimonials</span><span class="sn-dot h-[3px] rounded-full transition-all duration-300"></span></button></li>
+    <li><button type="button" data-section="section-footer" aria-label="Scroll to Get Started" class="group/item flex cursor-pointer items-center justify-end gap-2.5 py-[5px]"><span class="sn-label whitespace-nowrap rounded-lg border px-3.5 py-2 text-xs font-semibold tracking-wide backdrop-blur-xl transition-colors duration-200" style="display:none">Get Started</span><span class="sn-dot h-[3px] rounded-full transition-all duration-300"></span></button></li>
+  </ul>
+</nav>
+
+<!-- ===== chat launcher pill + fullscreen chat (client-only bundle) ===== -->
+<div id="chat-backdrop" class="fixed inset-0 z-[39]" style="display:none"></div>
+<div id="chat-launcher" class="fixed bottom-10 left-1/2 z-40" style="transform:translateX(-50%) translateY(0px);transition:transform 0.2s ease">
+  <span class="cp-ring" style="position:absolute;left:50%;top:50%;margin-left:-31px;margin-top:-31px;z-index:-1"></span>
+  <span class="cp-ring cp-ring-2" style="position:absolute;left:50%;top:50%;margin-left:-31px;margin-top:-31px;z-index:-1"></span>
+  <div id="chat-morph" class="cp-morph" style="width:62px;height:62px;border-radius:9999px;overflow:hidden;cursor:pointer">
+    <div class="cp-orb-inner absolute inset-0 flex items-center justify-center">
+      <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-message-square h-[22px] w-[22px] cp-orb-icon" aria-hidden="true"><path d="M22 17a2 2 0 0 1-2 2H6.828a2 2 0 0 0-1.414.586l-2.202 2.202A.71.71 0 0 1 2 21.286V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2z"></path></svg>
+    </div>
+    <div class="cp-pill-inner absolute inset-0 flex items-center" style="padding-left:26px;padding-right:10px;gap:10px;opacity:0;display:none">
+      <button type="button" class="cp-history-btn cp-pill-icon-btn shrink-0 flex h-9 w-9 items-center justify-center rounded-full text-violet-400/50 transition-all hover:bg-violet-500/10 hover:text-violet-300 disabled:pointer-events-none disabled:opacity-30" aria-label="Chat history" disabled=""><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clock h-[17px] w-[17px]" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><path d="M12 6v6l4 2"></path></svg></button>
+      <div class="shrink-0" style="width:1px;height:20px;background:rgba(167,139,250,0.15)"></div>
+      <input type="text" class="cp-pill-input flex-1 min-w-0 bg-transparent text-[13.5px] tracking-[-0.01em] text-white/78 placeholder:text-white/26 outline-none font-poppins" placeholder="LIA is infinite, ask anything..." value=""/>
+      <div class="shrink-0" style="width:1px;height:20px;background:rgba(167,139,250,0.18)"></div>
+      <button type="button" class="cp-voice-btn cp-pill-icon-btn shrink-0 flex h-9 w-9 items-center justify-center rounded-full text-violet-400/55 transition-all hover:bg-violet-500/12 hover:text-violet-300" aria-label="Go to voice chat"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-mic h-[17px] w-[17px]" aria-hidden="true"><path d="M12 19v3"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><rect x="9" y="2" width="6" height="13" rx="3"></rect></svg></button>
+      <button type="button" class="cp-send-btn shrink-0 flex h-9 w-9 items-center justify-center rounded-full transition-all disabled:opacity-22" aria-label="Send message" disabled="" style="background:rgba(109,40,217,0.20);box-shadow:none"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-right h-[16px] w-[16px] text-white" aria-hidden="true"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg></button>
+    </div>
+  </div>
+  <span class="cp-badge absolute -right-1 -top-1 z-20 flex h-4 w-4 items-center justify-center rounded-full bg-fuchsia-500 text-[9px] font-semibold text-white pointer-events-none" style="display:none"></span>
+</div>
+
+<div id="chat-overlay" class="fc-overlay-bg fixed inset-0 z-[10000] flex flex-col overflow-hidden" style="display:none;opacity:0">
+  <div class="pointer-events-none absolute inset-0 overflow-hidden">
+    <div style="position:absolute;top:-22%;left:-14%;width:62%;height:62%;border-radius:50%;background:radial-gradient(circle, rgba(109,40,217,0.22) 0%, transparent 70%);filter:blur(48px);animation:fc-drift-a 20s ease-in-out infinite"></div>
+    <div style="position:absolute;bottom:-28%;right:-16%;width:68%;height:68%;border-radius:50%;background:radial-gradient(circle, rgba(37,99,235,0.15) 0%, transparent 70%);filter:blur(56px);animation:fc-drift-b 25s ease-in-out infinite"></div>
+    <div style="position:absolute;top:28%;left:22%;width:52%;height:52%;border-radius:50%;background:radial-gradient(circle, rgba(192,38,211,0.11) 0%, transparent 70%);filter:blur(64px);animation:fc-drift-c 17s ease-in-out infinite"></div>
+  </div>
+  <div class="pointer-events-none absolute inset-0 opacity-[0.022]" style="background-image:url(&quot;data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E&quot;);background-size:180px 180px"></div>
+  <div class="absolute right-5 top-5 z-20 flex items-center gap-2">
+    <button type="button" class="fc-retry cp-round-btn-glass flex h-9 w-9 items-center justify-center rounded-full transition-colors" aria-label="Retry last answer" style="display:none"><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-refresh-cw h-[15px] w-[15px]" aria-hidden="true"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"></path><path d="M21 3v5h-5"></path><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"></path><path d="M8 16H3v5"></path></svg></button>
+    <button type="button" class="fc-close cp-round-btn-glass flex h-9 w-9 items-center justify-center rounded-full transition-colors" aria-label="Close chat"><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x h-[15px] w-[15px]" aria-hidden="true"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg></button>
+  </div>
+  <div class="relative z-10 flex flex-1 flex-col overflow-hidden">
+    <div class="mx-auto flex w-full max-w-6xl flex-1 flex-col overflow-hidden px-6 lg:px-8">
+      <div class="fc-greeting flex flex-1 flex-col justify-center py-10">
+        <p class="mb-2 text-5xl font-light italic" style="font-family:Georgia, serif;color:rgba(var(--fg-rgb), 0.16)">Hello</p>
+        <h2 class="fc-greeting-heading mb-4 text-3xl font-bold leading-[1.15] tracking-tight sm:text-[2.6rem]">How can I help<br/>you today?</h2>
+        <p class="mb-10 max-w-xs text-[13px] leading-relaxed" style="color:rgba(var(--fg-rgb), 0.30)">Ask me anything — I&#x27;m LIA, your AI conversational agent.</p>
+      </div>
+      <div class="fc-messages flex flex-1 flex-col gap-4 overflow-y-auto pb-4 pt-16 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-white/10 light:scrollbar-thumb-black/10" style="display:none"></div>
+      <div class="shrink-0 pb-8 pt-3">
+        <div class="cp-morph flex items-center gap-3 px-4 py-3" style="border-radius:9999px">
+          <img src="assets/logo/lia%20white%201.png" alt="LIA" class="cp-fc-logo shrink-0" style="width:22px;height:22px;object-fit:contain;opacity:0.75"/>
+          <textarea class="fc-textarea flex-1 resize-none bg-transparent py-0 text-[13.5px] focus:outline-none disabled:opacity-40" placeholder="LIA is infinite, ask anything..." rows="1" aria-label="Chat input" style="color:rgba(var(--fg-rgb), 0.85);caret-color:rgba(167,139,250,1);max-height:120px;overflow-y:auto;font-family:inherit"></textarea>
+          <button type="button" class="fc-voice-btn cp-pill-icon-btn shrink-0 flex h-8 w-8 items-center justify-center rounded-full text-violet-400/55 transition-all hover:bg-violet-500/12 hover:text-violet-300" aria-label="Go to voice chat"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-mic h-[16px] w-[16px]" aria-hidden="true"><path d="M12 19v3"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><rect x="9" y="2" width="6" height="13" rx="3"></rect></svg></button>
+          <button type="button" class="fc-send-btn flex h-8 w-8 shrink-0 items-center justify-center rounded-full transition-all disabled:pointer-events-none disabled:opacity-25 cp-send-idle-icon" aria-label="Send message" disabled="" style="background:rgba(109,40,217,0.20);border:1px solid rgba(109,40,217,0.22)"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-right h-4 w-4" aria-hidden="true"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg></button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

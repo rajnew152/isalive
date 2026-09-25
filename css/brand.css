@@ -1,0 +1,15 @@
+/* Better Pitch logo sizing. The wordmark (assets/betterpitch.svg) is wider than
+   the original LIA mark, so each placement gets its own width here instead of
+   the replica's Tailwind width utilities. */
+.bp-logo-header { width: 5.75rem; }
+@media (min-width: 640px) { .bp-logo-header { width: 8.5rem; } }
+
+.bp-logo-menu { width: 7.5rem; }
+
+.bp-logo-footer { width: 9.5rem; height: auto; }
+
+.bp-logo-preloader { width: 11rem; height: auto; }
+@media (min-width: 640px) { .bp-logo-preloader { width: 13rem; } }
+
+/* "bp" monogram in the Results cards (where the client logos used to sit) */
+.bp-result-mark { height: 1.75rem; width: auto; opacity: 0.55; }

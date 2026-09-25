@@ -1,0 +1,120 @@
+/* =============================================================================
+   manifesto.js — the "I create experiences…" sentence (port of the manifesto
+   section of guillaumezhu.com). The stage pins while the sentence slides from
+   right to left; every letter enters from the right edge displaced and rotated
+   by a random amount and springs onto the baseline (elastic ease) as it
+   travels across the viewport.
+   ============================================================================= */
+(function () {
+  "use strict";
+
+  function splitLetters(el) {
+    if (el.dataset.split) return;
+    el.setAttribute("aria-label", el.textContent.trim());
+    el.innerHTML = el.textContent.trim().split("").map((ch) =>
+      ch === " " ? '<span aria-hidden="true">&nbsp;</span>' : `<span class="letter" aria-hidden="true">${ch}</span>`
+    ).join("");
+    el.dataset.split = "1";
+  }
+
+  function init() {
+    const root = document.getElementById("section-manifesto");
+    if (!root || !window.gsap || !window.ScrollTrigger) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    gsap.registerPlugin(ScrollTrigger);
+
+    const pinHeight = root.querySelector(".mf__pin-height");
+    const container = root.querySelector(".mf__container");
+    const text = root.querySelector(".mf__text");
+    if (!pinHeight || !container || !text) return;
+
+    splitLetters(text);
+    const letters = text.querySelectorAll(".letter");
+
+    /* reference: the slide covers the text overflow over 0.65px of scroll per px */
+    const RATIO = 0.65;
+    const overflow = () => text.scrollWidth - container.clientWidth;
+    const travel = () => Math.max(overflow() * RATIO, 1);
+    const sizePin = () => { pinHeight.style.height = `${window.innerHeight + travel()}px`; };
+    sizePin();
+    ScrollTrigger.addEventListener("refreshInit", sizePin);
+
+    ScrollTrigger.create({
+      trigger: pinHeight,
+      start: "top top",
+      end: "bottom bottom",
+      pin: container,
+      pinSpacing: false,
+      anticipatePin: 1,
+      refreshPriority: -1, // after the hero pin above it, which main.js creates later
+    });
+
+    const slide = gsap.to(text, {
+      x: () => -overflow(),
+      ease: "none",
+      scrollTrigger: { trigger: pinHeight, start: "top top", end: "bottom bottom", scrub: true, invalidateOnRefresh: true, refreshPriority: -1 },
+    });
+
+    /* colour ramp by on-screen position (reference): letters enter in the
+       theme ink on the right and turn dark red → red → pink → magenta as they
+       travel left. The ink and the stage colours come from css/manifesto.css. */
+    let ramp = null, stageIn = null, stageOut = null;
+    const build = () => {
+      const cs = getComputedStyle(root), v = (n) => cs.getPropertyValue(n).trim();
+      const ink = v("--mf-ink") || "#1f1d1d";
+      const STOPS = [
+        [0.0, "#b51cb4"], [0.2, "#d11d86"], [0.4, "#de1e4b"], [0.55, "#e2141b"],
+        [0.72, gsap.utils.interpolate("#e2141b", ink, 0.45)], [0.88, ink], [1.0, ink],
+      ];
+      const mixers = STOPS.slice(1).map(([p, col], i) => [STOPS[i][0], p, gsap.utils.interpolate(STOPS[i][1], col)]);
+      ramp = (p) => {
+        if (p <= 0) return STOPS[0][1];
+        if (p >= 1) return STOPS[STOPS.length - 1][1];
+        const [a, b, mix] = mixers.find(([, b]) => p <= b);
+        return mix((p - a) / (b - a));
+      };
+      stageIn = gsap.utils.interpolate(v("--mf-above"), v("--mf-mid"));
+      stageOut = gsap.utils.interpolate(v("--mf-mid"), v("--mf-below"));
+      letters.forEach((l) => { l._mfColor = null; });
+    };
+    let centers = [];
+    const measure = () => { centers = Array.from(letters, (l) => l.offsetLeft + l.offsetWidth / 2); };
+    const smooth = (t) => { t = Math.min(1, Math.max(0, t)); return t * t * (3 - 2 * t); };
+    const EDGE = 0.14; // share of the slide spent blending in / out at each end
+    const paint = () => {
+      const x = gsap.getProperty(text, "x"), w = container.clientWidth;
+      letters.forEach((l, i) => {
+        const c = ramp((centers[i] + x) / w);
+        if (l._mfColor !== c) { l.style.color = c; l._mfColor = c; }
+      });
+      /* stage: colour above → soft middle → colour below; glows only in between */
+      const p = slide.progress();
+      const inT = smooth(p / EDGE), outT = smooth((p - (1 - EDGE)) / EDGE);
+      container.style.setProperty("--mf-stage", outT > 0 ? stageOut(outT) : stageIn(inT));
+      container.style.setProperty("--mf-glow", (inT * (1 - outT)).toFixed(3));
+      container.style.setProperty("--mf-drift", p.toFixed(4));
+    };
+    build();
+    measure();
+    slide.eventCallback("onUpdate", paint);
+    ScrollTrigger.addEventListener("refresh", () => { measure(); paint(); });
+    /* theme toggle swaps the palette */
+    new MutationObserver(() => { build(); paint(); }).observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+    paint();
+
+    letters.forEach((letter) => {
+      gsap.from(letter, {
+        yPercent: (Math.random() - 0.5) * 400,
+        rotation: (Math.random() - 0.5) * 60,
+        ease: "elastic.out(1.2, 1)",
+        scrollTrigger: { trigger: letter, containerAnimation: slide, start: "left 100%", end: "left 0%", scrub: 0.5, refreshPriority: -2 },
+      });
+    });
+
+    /* fonts change the sentence width */
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => ScrollTrigger.refresh());
+  }
+
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
+  else init();
+})();

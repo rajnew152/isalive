@@ -1,0 +1,24 @@
+/* =============================================================================
+   palette.css — Better Pitch warm palette for the few colours that live in
+   images (colour values in the stylesheets, scripts and markup are re-mapped by
+   tools/palette.js). hue-rotate moves the violet map artwork into the pink range.
+   ============================================================================= */
+.footer-globe-texture { filter: hue-rotate(78deg) saturate(1.05); }
+
+/* feather over the industries wheel's top edge (js/section-seams.js), in the
+   manifesto section's bottom colour, so the two sections merge without a line */
+.bp-seam {
+  --seam-from: #f4e9ee;
+  position: absolute;
+  inset: 0 0 auto;
+  z-index: 30;
+  height: 42vh;
+  pointer-events: none;
+  background: linear-gradient(180deg,
+    var(--seam-from) 0%,
+    color-mix(in srgb, var(--seam-from) 82%, transparent) 22%,
+    color-mix(in srgb, var(--seam-from) 50%, transparent) 50%,
+    color-mix(in srgb, var(--seam-from) 18%, transparent) 78%,
+    transparent 100%);
+}
+@media (max-width: 600px) { .bp-seam { height: 28vh; } }

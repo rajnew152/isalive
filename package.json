@@ -1,0 +1,11 @@
+{
+  "name": "lia-replica",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Static replica of the lialive.ai homepage (college project). No dependencies.",
+  "scripts": {
+    "dev": "node tools/serve.js 8090",
+    "start": "node tools/serve.js 8090",
+    "build": "node tools/build-html.js tools/source-live.html index.html"
+  }
+}

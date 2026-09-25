@@ -1,0 +1,25 @@
+/* =============================================================================
+   marquee-fill.css — red → magenta gradient fill over the outlined
+   "OUR FEATURES / POWERED BY AI" marquee. The fill is a copy of each line laid
+   on top of it; js/marquee-fill.js sweeps it in as the section is revealed and
+   fades it back to the outline as the first feature card arrives.
+   ============================================================================= */
+.lia-marquee-line { position: relative; }
+.lia-marquee-fill {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  color: transparent;
+  -webkit-text-stroke: 0 !important;
+  background-image: linear-gradient(90deg, #b51cb4 0%, #d11d86 22%, #de1e4b 40%, #e2141b 50%, #de1e4b 60%, #d11d86 78%, #b51cb4 100%);
+  background-size: 140vw 100%;
+  background-repeat: repeat-x;
+  -webkit-background-clip: text;
+  background-clip: text;
+  opacity: 0;
+  /* soft sweep edge: --mf-edge is set in the line's own pixels by the script */
+  --mf-edge: 0px;
+  -webkit-mask-image: linear-gradient(90deg, #000 calc(var(--mf-edge) - 18vw), transparent var(--mf-edge));
+  mask-image: linear-gradient(90deg, #000 calc(var(--mf-edge) - 18vw), transparent var(--mf-edge));
+  will-change: opacity;
+}
