@@ -15,11 +15,13 @@
   const DOT_DENSITY = 80000;          // land candidates = 3x this
   const BASE_SIZE = 5, SIZE_RANDOM = 1;
   const ROT_SPEED = 0.06;
-  const OCEAN_HI = [0.980, 0.980, 0.988];  // #FAFAFC
-  const OCEAN_DARK = [0, 0, 0];            // #000000
-  const OCEAN_LIGHT = [0.220, 0.220, 0.220]; // #383838
-  const DOT_COLOR = [1, 1, 1];
-  const HOVER_COLOR = [0.784, 0.843, 0.980]; // #C8D7FA
+  /* colours in the site's warm palette (brand pink → magenta, coral accents)
+     instead of the reference's silver / white / blue */
+  const OCEAN_HI = [0.788, 0.227, 0.447];   // #C93A72 lit side + rim glow (deep brand pink)
+  const OCEAN_DARK = [0.051, 0.016, 0.035]; // #0D0409 shadow side (warm black)
+  const OCEAN_LIGHT = [0.420, 0.114, 0.290]; // #6B1D4A drifting magenta tint
+  const DOT_COLOR = [1.000, 0.902, 0.937];   // #FFE6EF pink-white land dots
+  const HOVER_COLOR = [1.000, 0.580, 0.471]; // #FF9478 coral under the pointer
   const LENS = { radius: 0.45, mag: 0.06, bulge: 0.06, scale: 1.6 };
   const CAM_Z = 2.9, FOV = 40 * Math.PI / 180, RADIUS = 0.99;
   const BAND = 0.24, MAX_W = 2600;
@@ -350,7 +352,11 @@
       gl.enable(gl.DEPTH_TEST);
       gl.depthFunc(gl.LEQUAL);
       gl.enable(gl.BLEND);
-      gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+      /* colour blends normally; alpha accumulates (ONE, 1-a) so a translucent dot
+         over the opaque sphere keeps the canvas opaque there — with plain
+         SRC_ALPHA on alpha too, every dot punched a hole to the black page and
+         the land read as grey */
+      gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
 
       /* ocean */
       gl.useProgram(oceanP);
