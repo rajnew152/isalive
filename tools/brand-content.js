@@ -248,9 +248,36 @@ s('<link rel="stylesheet" href="css/journey-fluid.css"/>', '<link rel="styleshee
 /* after the hero/feature pins above it (ScrollTrigger refreshes in creation order) */
 s('<script src="js/features.js"></script>', '<script src="js/features.js"></script>\n<script src="js/manifesto.js"></script>');
 
+/* ============================== moved: journey + toolkit sections ============================== */
+/* extra-sections.html is appended after the footer; the "Emotion / meets / outcomes." sentences and
+   the Toolkit deck go between the industries wheel and the FAQ ("Ready when you are" stays at the end) */
+r(/(\n\n<!-- =+ -->\n<section id="section-faq"[\s\S]*?)\n(<!-- =+ -->\n<!-- Appended sections replicated[\s\S]*?\n<section id="section-toolkit"[\s\S]*?\n<\/section>\n)/,
+  "\n\n$2$1");
+
+/* ============================== moved: FAQ below the ROI calculator ============================== */
+r(/(\n\n<!-- =+ -->\n<section id="section-faq"[\s\S]*?)(\n\n<!-- =+ -->\n<section id="roi-calculator"[\s\S]*?)(?=\n\n<!-- =+ -->\n<section id="testimonials")/,
+  "$2$1");
+/* the side dots follow the page order */
+r(/(\n *<li><button type="button" data-section="section-faq"[^\n]*)(\n *<li><button type="button" data-section="roi-calculator"[^\n]*)/,
+  "$2$1");
+
+/* the "Get Started" nav dot tracks the closing section, whose reveal card now holds the globe footer
+   (tools/next-globe.js); js/section-nav.js observes section-next instead of section-footer */
+s('data-section="section-footer" aria-label="Scroll to Get Started"', 'data-section="section-next" aria-label="Scroll to Get Started"');
+
 /* ============================== added: red → magenta fill on the features marquee ============================== */
 s('<link rel="stylesheet" href="css/manifesto.css"/>', '<link rel="stylesheet" href="css/manifesto.css"/>\n<link rel="stylesheet" href="css/marquee-fill.css"/>');
 s('<script src="js/manifesto.js"></script>', '<script src="js/manifesto.js"></script>\n<script src="js/marquee-fill.js"></script>');
+
+/* ============================== added: interactive dotted globe in the footer card ============================== */
+s('<script src="js/footer.js"></script>', '<script src="js/footer.js"></script>\n<script src="js/globe-3d.js"></script>');
+
+/* ============================== added: team cards over the "outcomes." gradient ============================== */
+/* inside #section-journey's pin height, after the pinned stage; markup in tools/team-section.html */
+r(/(<section id="section-journey"[\s\S]*?\n    <\/div>\n)(?=  <\/div>\n<\/section>)/,
+  "$1" + require("fs").readFileSync(require("path").join(__dirname, "team-section.html"), "utf8").replace(/^\n+/, "").replace(/\$/g, "$$$$"));
+s('<link rel="stylesheet" href="css/marquee-fill.css"/>', '<link rel="stylesheet" href="css/marquee-fill.css"/>\n<link rel="stylesheet" href="css/team.css"/>');
+s('<script src="js/journey-fluid.js"></script>', '<script src="js/journey-fluid.js"></script>\n<script src="js/team.js"></script>');
 
 /* ============================== industries wheel ============================== */
 pair("Hospitality", "Reservations made easy, intelligent pre and post booking support and more!",
@@ -349,6 +376,15 @@ t("Why LIA", "Why Better Pitch");
 t("Testimonials", "Results", 2);
 s("Scroll to Testimonials", "Scroll to Results");
 
+/* ============================== replaced: results as a card deck (Toolkit-style) ============================== */
+/* after the nav labels above (their "Testimonials" rule must not see the deck's title): the rewritten
+   results marquee gives way to the fanned deck in tools/testimonials-section.html
+   (css/testimonials.css, js/testimonials.js) */
+r(/<section id="testimonials"[\s\S]*?<\/section>/,
+  require("fs").readFileSync(require("path").join(__dirname, "testimonials-section.html"), "utf8").trimEnd().replace(/\$/g, "$$$$"));
+s('<link rel="stylesheet" href="css/team.css"/>', '<link rel="stylesheet" href="css/team.css"/>\n<link rel="stylesheet" href="css/testimonials.css"/>');
+s('<script src="js/toolkit.js"></script>', '<script src="js/toolkit.js"></script>\n<script src="js/testimonials.js"></script>');
+
 /* ============================== menu ============================== */
 t("AI Products", "Platform");
 t("Aviation", "BFSI &amp; NBFC");
@@ -367,6 +403,25 @@ t("I bridge", "meets");
 t("the two.", "outcomes.");
 t("Creative Front-end", "Engineering Stack");
 t("Art Direction", "Design Studio");
+/* Toolkit shows only the "Design Studio" (art-direction) deck: the front-end deck and its
+   subtitle go, and js/toolkit.js / css/journey-toolkit.css run the art phases alone (.tk--art-only) */
+s('<section id="section-toolkit" class="tk"', '<section id="section-toolkit" class="tk tk--art-only"');
+r(/\n *<h3 class="tk__subtitle tk__subtitle--front">[^<]*<\/h3>/, "");
+r(/\n\n      <!-- front-end deck -->\n      <div class="tk__wheel tk__wheel--frontend">[\s\S]*?\n      <\/div>\n/, "\n");
+/* the deck's cards and heading carry the voice platform's capabilities (ravan.ai):
+   card art in assets/toolkit/agni-*.svg, same 295x417 face as the design-tool cards */
+s('<h2 class="tk__title">Toolkit</h2>', '<h2 class="tk__title">Platform</h2>');
+t("Design Studio", "Enterprise AI deployment · India-native");
+[
+  ["figma.svg", "Figma — Design tool", "agni-agent-builder.svg", "Agent Builder — prompts, voices and accents"],
+  ["photoshop.svg", "Photoshop — Image editing", "agni-knowledge-base.svg", "Knowledge Base — FAQs, policies and pricing"],
+  ["illustrator.svg", "Illustrator — Vector graphics", "agni-tools.svg", "Tools — transfers, APIs and IVRs"],
+  ["indesign.svg", "InDesign — Layout", "agni-calling.svg", "Calling — inbound and outbound"],
+  ["aftereffects.svg", "After Effects — Motion design", "agni-analytics.svg", "Call Analytics — transcripts and sentiment"],
+  ["capcut.svg", "CapCut — Video editing", "agni-webhooks.svg", "API and Webhooks — CRM and calendar sync"],
+  ["lightroom.svg", "Lightroom — Photo editing", "agni-languages.svg", "30+ Languages — Hinglish-native, sub-300ms"],
+].forEach(([from, fromAlt, to, toAlt]) =>
+  s(`src="assets/toolkit/${from}" alt="${fromAlt}"`, `src="assets/toolkit/${to}" alt="${toAlt}"`));
 t("If our visions align,", "Ready when you are,");
 t("let&rsquo;s shape what&rsquo;s next together.", "let&rsquo;s put your calls to work.");
 t("If our visions align, let&rsquo;s shape what&rsquo;s next together.", "Ready when you are, let&rsquo;s put your calls to work.");

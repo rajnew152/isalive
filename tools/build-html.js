@@ -169,8 +169,12 @@ const replica = head + body.trimEnd() + "\n" + extraSections.replace(/^\n+/, "\n
 const branded = require("./brand-content").apply(replica);
 
 /* ---------------------------------------------------------------- 9. warm palette on inline colours (see tools/palette.js) */
-const result = require("./palette").warmPage(branded).text
+const warmed = require("./palette").warmPage(branded).text;
+
+/* ---------------------------------------------------------------- 10. globe footer inside the closing section's reveal card (see tools/next-globe.js) */
+/* ---------------------------------------------------------------- 11. ROI calculator on the Toolkit's cream cover (see tools/roi-stage.js) */
+const result = require("./roi-stage").apply(require("./next-globe").apply(warmed))
   .replace('<link rel="stylesheet" href="css/perf.css"/>', '<link rel="stylesheet" href="css/palette.css"/>\n<link rel="stylesheet" href="css/perf.css"/>')
-  .replace('<script src="js/card-demo.js"></script>', '<script src="js/card-demo.js"></script>\n<script src="js/section-seams.js"></script>');
+  .replace('<script src="js/card-demo.js"></script>', '<script src="js/card-demo.js"></script>\n<script src="js/section-seams.js"></script>\n<script src="js/header-contrast.js"></script>');
 fs.writeFileSync(out, result);
 console.log("wrote", out, result.length, "bytes");

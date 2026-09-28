@@ -40,6 +40,10 @@
     const right = root.querySelector(".traj__visual--right");
     if (!pinHeight || !container || !sentences.length || !left || !right) return;
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    /* the team cards (js/team.js) extend the pin height by their own height; the
+       sentence timeline keeps the length the stylesheet gives the pin height */
+    const team = root.querySelector(".traj__team");
+    const sentenceEnd = () => "+=" + (pinHeight.offsetHeight - (team ? team.offsetHeight : 0) - window.innerHeight);
 
     sentences.forEach(splitLetters);
     const first = sentences[0];
@@ -54,6 +58,9 @@
     };
     sizeBackground();
     ScrollTrigger.addEventListener("refreshInit", sizeBackground);
+    /* also follow the stage's own size (the scrollbar appearing after the preloader,
+       window / zoom changes) so the halves never drift apart at the seam */
+    if (window.ResizeObserver) new ResizeObserver(sizeBackground).observe(container);
 
     const halfW = () => container.clientWidth / 2 + 1;
     const sliceW = () => container.clientWidth * 0.48;
@@ -83,7 +90,7 @@
     });
 
     const tl = gsap.timeline({
-      scrollTrigger: { trigger: pinHeight, start: "top top", end: "bottom bottom", scrub: true, invalidateOnRefresh: true },
+      scrollTrigger: { trigger: pinHeight, start: "top top", end: sentenceEnd, scrub: true, invalidateOnRefresh: true },
     });
     const finePointer = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
     let playSentence = null;
@@ -91,7 +98,7 @@
     const above = { yPercent: -50, y: () => -container.clientHeight * 0.5 };
     const rest = { yPercent: 0, y: 0 };
 
-    tl.to({}, { duration: 0.3 });
+    /* no empty hold before the first sentence: it starts rising as the stage arrives */
     tl.fromTo(first, below, { ...rest, ease: "power3.out", immediateRender: true });
     tl.fromTo(first.querySelectorAll("span"), below, { ...rest, ease: "power3.out", stagger: 0.02, immediateRender: true }, "<");
 

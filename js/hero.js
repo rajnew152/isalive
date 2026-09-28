@@ -9,6 +9,7 @@
   "use strict";
   const { animate, set, clamp, prefersReducedMotion } = LiaMotion;
   const progressListeners = [];
+  const CARD_SLOWDOWN = 1.4; // >1 = feature cards move slower per scroll distance
   let hero, left, center, orbWrap, overlay, rail, reveal, timeline = null, ctx = null;
   let waveform = null, breakpointKey = "";
 
@@ -52,7 +53,9 @@
             const vh = window.innerHeight;
             const mult = hasProgressContent ? (e ? 2.6 : a ? 3.4 : 6.2) : (e || a ? 1 : 1.35);
             const min = hasProgressContent ? (e ? 1500 : a ? 1900 : 3400) : (e ? 500 : a ? 560 : 760);
-            return `+=${Math.max(vh * mult, min)}`;
+            // stretch the pin so the feature cards travel slower (the intro reveal keeps its pace)
+            const stretch = hasProgressContent ? (0.74 + 3.25 * CARD_SLOWDOWN) / (0.74 + 3.25) : 1;
+            return `+=${Math.max(vh * mult, min) * stretch}`;
           },
           scrub: 1.05,
           pin: true,
@@ -79,7 +82,7 @@
         if (window.LiaVoice) LiaVoice.setCaptionSuppressed(t >= 0.92);
       };
       if (hasProgressContent) {
-        tl.to({}, { duration: 3.25 }, 0.74).eventCallback("onUpdate", () => {
+        tl.to({}, { duration: 3.25 * CARD_SLOWDOWN }, 0.74).eventCallback("onUpdate", () => {
           const d = tl.duration();
           notify(clamp((tl.time() - 0.74) / (d - 0.74), 0, 1));
           syncWaveform();

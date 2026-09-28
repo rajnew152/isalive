@@ -1,0 +1,5 @@
+2026/09/28-16:46:09.303 7354 Creating DB C:\Users\Head Field\Desktop\betterpitch main\lia-replica\prof7\Default\EdgeCoupons/coupons_data.db since it was missing.
+2026/09/28-16:46:09.329 7354 Reusing MANIFEST C:\Users\Head Field\Desktop\betterpitch main\lia-replica\prof7\Default\EdgeCoupons/coupons_data.db/MANIFEST-000001
+2026/09/28-16:46:14.152 6ef4 Level-0 table #5: started
+2026/09/28-16:46:14.166 6ef4 Level-0 table #5: 683273 bytes OK
+2026/09/28-16:46:14.175 6ef4 Delete type=0 #3

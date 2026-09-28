@@ -1,7 +1,10 @@
 /* Better Pitch logo sizing. The wordmark (assets/betterpitch.svg) is wider than
    the original LIA mark, so each placement gets its own width here instead of
    the replica's Tailwind width utilities. */
-.bp-logo-header { width: 5.75rem; }
+.bp-logo-header { width: 5.75rem; transition: filter 0.35s ease; }
+/* over the journey's orange / purple gradient the gradient wordmark disappears:
+   js/header-contrast.js sets this class while the gradient sits behind the logo */
+html.bp-logo-on-gradient .bp-logo-header { filter: brightness(0) invert(1); }
 @media (min-width: 640px) { .bp-logo-header { width: 8.5rem; } }
 
 .bp-logo-menu { width: 7.5rem; }

@@ -14,11 +14,112 @@
   z-index: 30;
   height: 42vh;
   pointer-events: none;
-  background: linear-gradient(180deg,
-    var(--seam-from) 0%,
-    color-mix(in srgb, var(--seam-from) 82%, transparent) 22%,
-    color-mix(in srgb, var(--seam-from) 50%, transparent) 50%,
-    color-mix(in srgb, var(--seam-from) 18%, transparent) 78%,
-    transparent 100%);
+  /* the fade is a mask over a flat fill: a gradient of color-mix() stops rendered
+     almost opaque in Chromium/Edge and ended the band in a hard line */
+  background: var(--seam-from);
+  -webkit-mask-image: linear-gradient(180deg, #000 0%, rgba(0, 0, 0, 0.82) 22%, rgba(0, 0, 0, 0.5) 50%, rgba(0, 0, 0, 0.18) 78%, transparent 100%);
+          mask-image: linear-gradient(180deg, #000 0%, rgba(0, 0, 0, 0.82) 22%, rgba(0, 0, 0, 0.5) 50%, rgba(0, 0, 0, 0.18) 78%, transparent 100%);
 }
 @media (max-width: 600px) { .bp-seam { height: 28vh; } }
+/* the band is a direct child div of the wheel section: keep it out of the light
+   theme's "#section-cinematic-project > div" wash below, or it turns peach and
+   no longer matches the manifesto colour it starts from */
+html.light #section-cinematic-project > .bp-seam { background-color: var(--seam-from); }
+
+/* =============================================================================
+   Colour pass to the reference PDF (magenta → coral accents, rosy/peach light
+   surfaces, deeper blacks on the dark sections). Colour only: no layout changes.
+   ============================================================================= */
+
+/* ROI calculator: slider fills, selected pill, gauge arc and knob */
+#roi-calculator [style*="linear-gradient(90deg, #b62158, #ed3a7e)"] { background: linear-gradient(90deg, #e345c4, #ff9478) !important; }
+#roi-calculator .bg-\[\#6d28d9\] { background: linear-gradient(90deg, #fd44d5, #fd8365); box-shadow: 0 0 18px rgba(253, 68, 213, 0.4); }
+#roi-calculator #arc-grad stop:nth-child(1) { stop-color: #c943b1; }
+#roi-calculator #arc-grad stop:nth-child(2) { stop-color: #e8627f; }
+#roi-calculator #arc-grad stop:nth-child(3) { stop-color: #ff8a6e; }
+#roi-calculator #dot-glow stop:nth-child(1) { stop-color: rgba(250, 120, 210, 0.7); }
+#roi-calculator #dot-glow stop:nth-child(2) { stop-color: rgba(250, 120, 210, 0); }
+#roi-calculator #outer-ring-glow stop:nth-child(1) { stop-color: rgba(250, 120, 210, 0.18); }
+#roi-calculator #outer-ring-glow stop:nth-child(2) { stop-color: rgba(250, 120, 210, 0); }
+#roi-calculator circle[fill="#d92869"] { fill: #f764b8; }
+#roi-calculator circle[fill="#ed3a7e"] { fill: #f870c0; }
+#roi-calculator circle[fill="#fdb5d7"] { fill: #fec9f2; }
+html.light #roi-calculator .roi-gauge-track { stroke: #fbd6f0; }
+html.light #roi-calculator .text-foreground { color: #574957; }
+
+/* industries wheel (light theme): rosy / peach wash, pink → red titles */
+html.light #section-cinematic-project,
+html.light #section-cinematic-project > div { background-color: #fff0ee; }
+html.light #section-cinematic-project > div > .pointer-events-none.absolute.inset-0:first-child {
+  background:
+    radial-gradient(circle at 50% 22%, rgba(255, 150, 185, 0.34), transparent 40%),
+    radial-gradient(circle at 22% 40%, rgba(255, 170, 170, 0.26), transparent 36%),
+    radial-gradient(circle at 80% 40%, rgba(255, 190, 170, 0.24), transparent 36%),
+    linear-gradient(180deg, #f4e9ee 0%, #fbe7ec 18%, #ffece8 40%, #fff3ef 70%, #fdf9fb 100%);
+}
+html.light #section-cinematic-project .light\:text-\[\#1e1442\] {
+  background: linear-gradient(90deg, #f2167c, #ff2d1e);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+html.light #section-cinematic-project .light\:text-\[\#4b4560\]\/85 { color: rgba(236, 50, 80, 0.85); }
+
+/* dark sections: deeper blacks as in the reference */
+.tk, .tk__container { background: #151519; }
+.nx, .nx__container { background: #000000; }
+
+/* ROI stage → FAQ: the FAQ's top glow is no longer cut off at the section's top
+   edge; it spills up over the ROI stage (sides and bottom stay clipped), so the
+   two light sections read as one surface */
+#section-faq {
+  position: relative;
+  z-index: 2;
+  overflow: visible;
+  clip-path: inset(-360px 0 0 0);
+}
+
+/* Toolkit cover (the transition card's fill that grows over the stage before the
+   ROI calculator fades in): the ROI stage's own light background, not the cream */
+:root { --tk-cover: #fdf9fb; }
+
+/* header contrast (js/theme.js sets bp-hdr-on-dark / bp-hdr-on-light from the
+   section behind the header): readable Menu / Get in touch / theme controls */
+#staggered-menu .sm-toggle, #staggered-menu .sm-extra { transition: color 0.3s ease; }
+#staggered-menu .sm-get-in-touch { transition: color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease; }
+html.bp-hdr-on-dark #staggered-menu .sm-toggle[aria-expanded="false"],
+html.bp-hdr-on-dark #staggered-menu .sm-extra,
+html.bp-hdr-on-dark #staggered-menu .sm-get-in-touch { color: #ffffff !important; }
+html.bp-hdr-on-light #staggered-menu .sm-toggle[aria-expanded="false"],
+html.bp-hdr-on-light #staggered-menu .sm-extra,
+html.bp-hdr-on-light #staggered-menu .sm-get-in-touch { color: #0a0a0f !important; }
+
+/* Testimonials ("tk tm"): the closing section's pure black, so the two run together */
+#testimonials.tk, #testimonials .tk__container { background: #000000; }
+
+/* journey stage (light theme): starts on the page's own light colour instead of
+   the dark ground, so the industries wheel runs straight into "Emotion / meets"
+   with no dark screens; the sentences use dark ink ("outcomes." keeps its cream
+   letters, which read through the gradient cards). !important beats the inline
+   colours js/journey.js sets on the stage while it plays. */
+html.light .traj__container { background-color: #fdf9fb !important; }
+html.light .traj__sentence:not(.is-both) { color: #1f1d1d; }
+
+/* industries wheel → journey (light theme): the wheel's bottom edge fades into the
+   page colour the journey stage starts on, instead of the wheel being cut off */
+html.light #section-cinematic-project > div::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0;
+  z-index: 25;
+  height: 5vh;
+  pointer-events: none;
+  background: linear-gradient(180deg,
+    rgba(253, 249, 251, 0) 0%,
+    rgba(253, 249, 251, 0.55) 45%,
+    rgba(253, 249, 251, 0.9) 75%,
+    #fdf9fb 100%);
+}
+html.light #section-cinematic-project .bg-gradient-to-t.light\:from-white {
+  background-image: linear-gradient(to top, #fdf9fb, rgba(253, 249, 251, 0.9), transparent);
+}

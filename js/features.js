@@ -74,6 +74,20 @@
 
   function setProgress(p) { progress = clamp(p, 0, 1); render(); }
 
+  /* the second marquee line slides right as the cards travel; give it one extra
+     segment hanging off the left edge (width measured from its text) so its
+     visible start still lines up with the first line's inset */
+  function alignMarquee() {
+    const line = marquee[1], text = line && line.firstChild;
+    if (!text || text.nodeType !== 3) return;
+    const word = text.data.trim().split("✦")[0].trim();
+    const next = text.data.indexOf(word, text.data.indexOf(word) + 1);
+    if (!word || next < 0) return;
+    const r = document.createRange();
+    r.setStart(text, 0); r.setEnd(text, next);
+    line.style.setProperty("--marquee-lead", `${r.getBoundingClientRect().width.toFixed(2)}px`);
+  }
+
   /* mobile: progress from the #features block's own scroll range */
   let scrollRaf = 0;
   function mobileScroll() {
@@ -137,7 +151,9 @@
 
     if (window.LiaHero) LiaHero.onProgress((p) => { if (mode === "desktop") setProgress(p); });
     layout();
-    window.addEventListener("resize", () => { computeMetrics(); layout(); });
+    alignMarquee();
+    if (document.fonts) document.fonts.ready.then(alignMarquee);
+    window.addEventListener("resize", () => { computeMetrics(); layout(); alignMarquee(); });
     window.addEventListener("lia:breakpoint", layout);
   }
 

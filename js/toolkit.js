@@ -28,7 +28,7 @@
      front rising from the bottom that wobbles with value noise mid-way ---- */
   function creamReveal(canvas, reduced) {
     const ctx = canvas && canvas.getContext && canvas.getContext("2d");
-    if (!ctx) return { setProgress() {}, resize() {} };
+    if (!ctx) return { setProgress() {}, resize() {}, onDraw() {} };
     const fract = (v) => v - Math.floor(v);
     function hash(x, y, z) {
       x = fract(x * 0.3183099 + 0.1) * 17;
@@ -45,29 +45,38 @@
       const top = hash(ix, iy + 1, 0) + (hash(ix + 1, iy + 1, 0) - hash(ix, iy + 1, 0)) * fx;
       return bottom + (top - bottom) * fy;
     }
-    const color = getComputedStyle(document.documentElement).getPropertyValue("--gz-cream").trim() || CREAM;
+    /* --tk-cover (css/palette.css) is the cover colour; the reference cream otherwise */
+    const rootStyle = getComputedStyle(document.documentElement);
+    const color = rootStyle.getPropertyValue("--tk-cover").trim() || rootStyle.getPropertyValue("--gz-cream").trim() || CREAM;
     const t0 = performance.now();
     const now = () => (performance.now() - t0) / 1000;
     let progress = 0, raf = null, w = 1, h = 1;
+    /* onDraw(front): told the cream's outline after every frame: "none", "full", or
+       the wavy front as [u 0..1 across, v 0..1 down] points (the ROI layer follows it) */
+    let hook = null;
 
     function draw(time) {
       ctx.clearRect(0, 0, w, h);
-      if (progress <= 0) return;
+      if (progress <= 0) { if (hook) hook("none"); return; }
       ctx.fillStyle = color;
-      if (progress >= 1) { ctx.fillRect(0, 0, w, h); return; }
+      if (progress >= 1) { ctx.fillRect(0, 0, w, h); if (hook) hook("full"); return; }
       const front = -0.08 + 1.16 * progress;             // mix(-0.08, 1.08, p)
       const wobble = Math.sin(progress * Math.PI) * 0.15; // noise envelope * strength
       const steps = 48;
+      const pts = [];
       ctx.beginPath();
       ctx.moveTo(0, h);
       for (let i = 0; i <= steps; i++) {
         const u = i / steps;
         const n = noise(u * 2 - time * 0.45, time * 0.35) - 0.5;
-        ctx.lineTo(u * w, h * (1 - (front + n * wobble)));
+        const v = 1 - (front + n * wobble);
+        ctx.lineTo(u * w, h * v);
+        pts.push([u, v]);
       }
       ctx.lineTo(w, h);
       ctx.closePath();
       ctx.fill();
+      if (hook) hook(pts);
     }
     function loop() { draw(now()); raf = requestAnimationFrame(loop); }
     function stop() { if (raf !== null) cancelAnimationFrame(raf); raf = null; }
@@ -89,7 +98,7 @@
       draw(now());
     }
     resize();
-    return { setProgress, resize };
+    return { setProgress, resize, onDraw(fn) { hook = fn; } };
   }
 
   function init() {
@@ -111,8 +120,11 @@
     const subWrap = root.querySelector(".tk__subtitle-wrap");
     const creamCard = root.querySelector(".tk-card--transition");
     const creamSlot = creamCard && creamCard.closest(".tk__slot");
-    if (!pinHeight || !container || !frontWheel || !artWheel || !frontSlots.length || !artSlots.length) return;
+    if (!pinHeight || !container || !artWheel || !artSlots.length) return;
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    /* without the front-end deck (removed by tools/brand-content.js) the stage opens
+       straight on the art-direction deck: the pin progress is mapped onto the art phases */
+    const artOnly = !frontWheel || !frontSlots.length;
 
     const norm = (v, a, b) => gsap.utils.clamp(0, 1, (v - a) / (b - a));
     const TOP_Z = frontSlots.length + artSlots.length + 10;
@@ -165,6 +177,7 @@
       wheel.classList.add("is-interactive");
     }
     function resetFront() {
+      if (artOnly) return;
       frontSlots.forEach((s, i) => { s.classList.toggle("is-visible", i === 0); gsap.set(s, { rotation: i * STEP, zIndex: i + 1, scale: 1 }); });
       frontWheel.classList.add("is-interactive");
       gsap.set(frontWheel, { rotation: 0, autoAlpha: 1, pointerEvents: "auto" });
@@ -237,9 +250,18 @@
     resetFront(); resetArt(); resetFlip();
     wireInteractions(frontSlots); wireInteractions(artSlots);
 
+    /* ROI calculator on the cream cover (moved in by tools/roi-stage.js): the pin holds
+       ROI_HOLD viewports longer than the deck needs, and the calculator fades in there */
+    const roi = container.querySelector("#roi-calculator.tk__roi");
+    const ROI_HOLD = 1.6;   // viewports; css/roi-stage.css adds the same 160vh
+    const ROI_FADE = 0.35;  // viewports of the hold used by the fade-in
+
     if (reduced) {
+      /* no cover animation: the calculator goes back to being its own section */
+      if (roi) { roi.classList.remove("tk__roi"); root.after(roi); root.classList.remove("tk--roi"); }
       pinHeight.style.height = "100vh";
-      fan(frontSlots, frontWheel);
+      if (artOnly) { gsap.set(frontWheel, { autoAlpha: 0 }); fan(artSlots, artWheel); if (subArt) gsap.set(subArt, { autoAlpha: 1 }); }
+      else fan(frontSlots, frontWheel);
       window.addEventListener("resize", fit);
       return;
     }
@@ -273,35 +295,40 @@
 
     function update(p) {
       if (ripple) killRipple();
+      if (artOnly) p = FLIP_END + p * (1 - FLIP_END);
 
       const artPhase = p >= FLIP_END;
       const artInteractive = artPhase && p < ART_STACK_END;
       gsap.set(artWheel, { autoAlpha: artPhase ? 1 : 0, pointerEvents: artInteractive ? "auto" : "none" });
-      gsap.set(frontWheel, { autoAlpha: artPhase ? 0 : 1, pointerEvents: artPhase ? "none" : "auto" });
       artWheel.classList.toggle("is-interactive", artInteractive);
-      frontWheel.classList.toggle("is-interactive", !artPhase);
+      if (!artOnly) {
+        gsap.set(frontWheel, { autoAlpha: artPhase ? 0 : 1, pointerEvents: artPhase ? "none" : "auto" });
+        frontWheel.classList.toggle("is-interactive", !artPhase);
+      }
 
-      /* 1. deal the front-end deck */
-      const dealt = Math.min(Math.floor(Math.min(p / FRONT_DEAL_END, 1) * frontSlots.length), frontSlots.length - 1);
-      deal(frontSlots, frontWheel, dealt, front);
-      if (p < FRONT_DEAL_END) {
-        if (stacked) {
+      if (!artOnly) {
+        /* 1. deal the front-end deck */
+        const dealt = Math.min(Math.floor(Math.min(p / FRONT_DEAL_END, 1) * frontSlots.length), frontSlots.length - 1);
+        deal(frontSlots, frontWheel, dealt, front);
+        if (p < FRONT_DEAL_END) {
+          if (stacked) {
+            frontSlots.forEach((s, i) => s.classList.toggle("is-visible", i <= front.count));
+            stacked = false;
+          }
+          return;
+        }
+
+        /* 2. gather it into a stack, leaving only the flip card */
+        gather(frontSlots, frontWheel, norm(p, FRONT_DEAL_END, FRONT_STACK_END));
+        if (p >= FRONT_STACK_END && !stacked) {
+          frontSlots.forEach((s) => { if (s !== flipSlot) s.classList.remove("is-visible"); });
+          if (flipSlot) flipSlot.classList.add("is-visible");
+          stacked = true;
+        }
+        if (p < FRONT_STACK_END && stacked) {
           frontSlots.forEach((s, i) => s.classList.toggle("is-visible", i <= front.count));
           stacked = false;
         }
-        return;
-      }
-
-      /* 2. gather it into a stack, leaving only the flip card */
-      gather(frontSlots, frontWheel, norm(p, FRONT_DEAL_END, FRONT_STACK_END));
-      if (p >= FRONT_STACK_END && !stacked) {
-        frontSlots.forEach((s) => { if (s !== flipSlot) s.classList.remove("is-visible"); });
-        if (flipSlot) flipSlot.classList.add("is-visible");
-        stacked = true;
-      }
-      if (p < FRONT_STACK_END && stacked) {
-        frontSlots.forEach((s, i) => s.classList.toggle("is-visible", i <= front.count));
-        stacked = false;
       }
 
       /* 3. flip Shopify to Figma while the subtitle swaps */
@@ -339,7 +366,49 @@
     ScrollTrigger.addEventListener("refresh", () => cream.resize());
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => ScrollTrigger.refresh());
 
-    ScrollTrigger.create({
+    /* ---- the ROI layer: shown (display) only once it starts fading in, so its own
+       reveal animations (js/roi.js, in-view) play when it actually appears; scaled
+       down if the calculator is taller than the stage ---- */
+    let roiShown = false;
+    function fitRoi() {
+      const inner = roi && roi.firstElementChild;
+      if (!inner || !roiShown) return;
+      inner.style.transform = "";
+      inner.style.width = inner.style.maxWidth = inner.style.flexShrink = "";
+      const cs = getComputedStyle(roi);
+      const room = roi.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
+      const roomW = roi.clientWidth;
+      if (roomW < 768) {
+        const s = Math.min(1, room / Math.max(inner.offsetHeight, 1));
+        if (s < 1) inner.style.transform = `scale(${s.toFixed(3)})`;
+        return;
+      }
+      /* fill the whole screen: the calculator gets taller as its layout widens, so
+         pick the layout width whose fit-to-height scale also fills the width (never
+         shrinking the text below ROI_MIN_SCALE), then scale it to fit both ways */
+      const ROI_MIN_SCALE = 0.72;
+      inner.style.flexShrink = "0";   // the stage is a flex row: keep the chosen width
+      const heightAt = (w) => { inner.style.width = inner.style.maxWidth = w + "px"; return Math.max(inner.offsetHeight, 1); };
+      let lo = Math.min(roomW, 900), hi = roomW * 2.5;
+      for (let k = 0; k < 14; k++) {
+        const mid = (lo + hi) / 2, s = room / heightAt(mid);
+        if (s * mid <= roomW && s >= ROI_MIN_SCALE) lo = mid; else hi = mid;
+      }
+      const s = Math.min(roomW / lo, room / heightAt(lo));
+      inner.style.transform = `scale(${s.toFixed(3)})`;
+    }
+    function showRoi(r) {
+      if (!roi) return;
+      const on = r > 0;
+      if (on !== roiShown) { roi.classList.toggle("is-on", on); roiShown = on; if (on) fitRoi(); }
+      gsap.set(roi, { opacity: r, pointerEvents: r > 0.5 ? "auto" : "none" });
+    }
+    if (roi) ScrollTrigger.addEventListener("refresh", fitRoi);
+    /* the cream's latest outline (from the canvas), redrawn every frame while it wobbles */
+    let creamPhase = false, creamFront = "none";
+    if (roi) cream.onDraw((front) => { creamFront = front; if (creamPhase) creamClip(); });
+
+    const trigger = ScrollTrigger.create({
       trigger: pinHeight,
       start: "top top",
       end: "bottom bottom",
@@ -348,9 +417,90 @@
       scrub: true,
       anticipatePin: 1,
       invalidateOnRefresh: true,
-      onUpdate: (self) => update(self.progress),
-      onRefresh: (self) => update(self.progress),
+      onUpdate: (self) => progress(self),
+      onRefresh: (self) => progress(self),
     });
+    /* the deck uses the pin minus the hold; the hold belongs to the calculator */
+    function progress(self) {
+      if (!roi) { update(self.progress); return; }
+      const vh = window.innerHeight, hold = vh * ROI_HOLD;
+      const range = Math.max(self.end - self.start - hold, 1);
+      const y = self.scroll() - self.start;
+      const p = gsap.utils.clamp(0, 1, y / range);
+      update(p);
+      if (y >= range) { creamPhase = false; roiFrame(1); }
+      else if (p >= CREAM_END) { creamPhase = false; roiFrame(norm(p, CREAM_END, 1)); }
+      else if (p > ART_STACK_END) { creamPhase = true; creamClip(); }
+      else { creamPhase = false; roiFrame(-1); }
+    }
+
+    /* ---- the calculator opens with the transition card. While the cream rises
+       inside the card, the calculator layer is clipped to the cream's wavy front
+       (so the cream carries the calculator in); while the card then grows over the
+       stage, it is clipped to the card's rounded outline and scaled with it
+       (cover-fit around the card's centre), reaching full screen together ---- */
+    function roiGeometry() {
+      const r = creamCard.getBoundingClientRect(), s = container.getBoundingClientRect();
+      /* contain-fit: the whole calculator shows inside the card (centred), and it
+         grows with the card until both fill the stage */
+      const f = Math.min(1, r.width / s.width, r.height / s.height);
+      const ox = r.left + r.width / 2 - s.left, oy = r.top + r.height / 2 - s.top;
+      /* the clip lives in the layer's own (unscaled) coordinates: map on-screen
+         points back through the scale about (ox, oy) */
+      const lx = (x) => ox + (x - s.left - ox) / f, ly = (yy) => oy + (yy - s.top - oy) / f;
+      roi.style.transformOrigin = `${ox}px ${oy}px`;
+      roi.style.transform = `scale(${f.toFixed(4)})`;
+      return { r, s, f, lx, ly };
+    }
+    function roiFrame(g) {
+      if (g < 0) { showRoi(0); roi.style.clipPath = roi.style.transform = ""; return; }
+      showRoi(1);
+      if (g >= 1) { roi.style.clipPath = roi.style.transform = ""; return; }
+      const { r, s, f, lx, ly } = roiGeometry();
+      const top = Math.max(0, ly(r.top)), left = Math.max(0, lx(r.left));
+      const bottom = Math.max(0, s.height - ly(r.bottom)), right = Math.max(0, s.width - lx(r.right));
+      const rx = (r.width * 0.068) / f, ry = (r.height * 0.048) / f;
+      roi.style.clipPath = `inset(${top.toFixed(1)}px ${right.toFixed(1)}px ${bottom.toFixed(1)}px ${left.toFixed(1)}px round ${rx.toFixed(1)}px / ${ry.toFixed(1)}px)`;
+    }
+
+    function creamClip() {
+      if (creamFront === "none") { showRoi(0); return; }
+      showRoi(1);
+      const { r, lx, ly } = roiGeometry();
+      const rx = r.width * 0.068, ry = r.height * 0.048;
+      /* the card's rounded outline: how far below its top edge the outline starts at x */
+      const edgeTop = (x) => {
+        const d = x < r.left + rx ? r.left + rx - x : x > r.right - rx ? x - (r.right - rx) : 0;
+        return d ? ry - ry * Math.sqrt(Math.max(0, 1 - (d / rx) ** 2)) : 0;
+      };
+      const pts = [];
+      const wave = creamFront === "full" ? Array.from({ length: 49 }, (_, i) => [i / 48, 0]) : creamFront;
+      for (const [u, v] of wave) {
+        const x = r.left + u * r.width;
+        pts.push([x, r.top + Math.max(v * r.height, edgeTop(x))]);
+      }
+      /* the bottom corners of the card, right then left */
+      for (let k = 0; k <= 6; k++) {
+        const a = (Math.PI / 2) * (k / 6);
+        pts.push([r.right - rx + rx * Math.cos(a), r.bottom - ry + ry * Math.sin(a)]);
+      }
+      for (let k = 0; k <= 6; k++) {
+        const a = Math.PI / 2 + (Math.PI / 2) * (k / 6);
+        pts.push([r.left + rx + rx * Math.cos(a), r.bottom - ry + ry * Math.sin(a)]);
+      }
+      roi.style.clipPath = "polygon(" + pts.map(([x, y]) => `${lx(x).toFixed(1)}px ${ly(y).toFixed(1)}px`).join(",") + ")";
+    }
+
+    /* links to the calculator (menu, footer, side dots) land where it is fully shown */
+    if (roi) {
+      document.addEventListener("click", (e) => {
+        const t = e.target.closest && e.target.closest('a[href="#roi-calculator"], button[data-section="roi-calculator"]');
+        if (!t || !root.contains(roi)) return;
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        window.scrollTo({ top: trigger.end - window.innerHeight * (ROI_HOLD - ROI_FADE) / 2, behavior: "smooth" });
+      }, true);
+    }
   }
 
   window.LiaToolkit = { init };

@@ -81,6 +81,9 @@
   font-family: var(--gz-font);
 }
 .tk__pin-height { height: 700vh; }
+/* art-direction deck only (tools/brand-content.js drops the front-end deck): the
+   art phases keep the scroll length they had inside the full 700vh sequence */
+.tk--art-only .tk__pin-height { height: 415vh; }
 .tk__container {
   position: relative;
   z-index: 1;
@@ -276,6 +279,14 @@
   will-change: clip-path;
   pointer-events: none;
 }
+/* the globe footer (#section-footer, moved in by tools/next-globe.js) fills the card:
+   globe and stars stay absolute at its bottom, the logo and links sit on top of them */
+.nx-footer > #section-footer {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  height: 100%;
+}
 .nx-footer__background {
   position: absolute;
   inset: 0;
@@ -380,3 +391,63 @@
   .nx-footer__group { gap: 6px; }
   .nx-footer__group-title { font-size: 20px; }
 }
+
+/* ------------------------------------------------- globe footer, dark blend
+   The revealed footer card shows only the globe on the section's own dark
+   background, whatever the site theme: no pink halo/rim, no colour washes,
+   no white bottom fade, dark map texture, and light text for the links.
+   (The halo/rim divs carry inline styles, hence the display:none selectors.) */
+.nx-footer #section-footer {
+  background: #000000;                /* palette.css paints .nx__container black */
+  --background: 0 0% 0%;              /* keep any bg-background children dark */
+  --foreground: 40 12% 92%;           /* cream-white links/logo text */
+  --fg-rgb: 236, 233, 230;
+}
+.light .nx-footer .footer-globe-texture { background-image: url("../assets/map.webp"); }
+.nx-footer .footer-globe-texture {
+  /* pull the map's purple-magenta land into the site's warm pink family
+     (brand pink ≈ hsl(341°); the texture sits ≈ 30° cooler); the contrast
+     boost sinks the dark water towards the black background while the
+     bright land keeps its glow */
+  /* soft, matte land: desaturated towards white so it reads orange-pink-white
+     rather than neon magenta */
+  filter: hue-rotate(32deg) saturate(0.65) brightness(1.25) contrast(1.18);
+}
+.light .nx-footer .footer-globe-wash { background: transparent; }
+/* brand sweep: a gentle orange → pink → warm-white drift across the land;
+   soft-light blend tints the bright landmass while the dark water stays black */
+.nx-footer .footer-globe-wash,
+.light .nx-footer .footer-globe-wash {
+  background: linear-gradient(100deg, rgba(255, 150, 90, 0.35) 0%, rgba(247, 96, 140, 0.32) 50%, rgba(255, 228, 238, 0.3) 100%);
+  mix-blend-mode: soft-light;
+}
+.nx-footer .footer-globe-shade,
+.light .nx-footer .footer-globe-shade {
+  /* symmetric, gentle vignette: the visible band of the globe stays as bright
+     on the bottom-left as on the bottom-right (the old ellipse sat at 68% and
+     drowned the left half in black) */
+  background: radial-gradient(ellipse at 50% 42%, transparent 55%, rgba(0, 0, 0, 0.45) 78%, rgba(0, 0, 0, 0.9) 95%);
+}
+.nx-footer #section-footer > .absolute.inset-0,   /* the two radial colour washes */
+.nx-footer #section-footer > [style*="box-shadow"], /* the pink halo ring */
+.nx-footer .footer-globe-shade ~ div,             /* inner red shadow + pink rim */
+.nx-footer #section-footer > .footer-bottom-fade { /* the white bottom fade */
+  display: none;
+}
+
+/* interactive dotted globe (js/globe-3d.js): once the canvas is ready the
+   flat map layers hide; if the script can't build the globe they stay */
+.lia-globe3d-on .footer-globe-texture,
+.lia-globe3d-on .footer-globe-wash,
+.lia-globe3d-on .footer-globe-shade { display: none; }
+.lia-globe3d-canvas {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 24%;
+  pointer-events: auto;   /* the holder is pointer-events-none; the canvas drags */
+  cursor: grab;
+  touch-action: pan-y;    /* horizontal drag spins, vertical scroll still works */
+}
+.lia-globe3d-canvas:active { cursor: grabbing; }

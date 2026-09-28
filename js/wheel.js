@@ -16,6 +16,22 @@
     const buttons = section.querySelectorAll(".top-\\[78\\%\\] button");
     if (!wheel || !details.length) return;
 
+    /* keep the whole globe on screen: the wheel has fixed pixel sizes, so on a short
+       window its lower rim falls below the viewport; scale the wheel block (ring,
+       hub, logo, labels) down from its top edge until the full circle fits */
+    const stage = wheel.parentElement;
+    function fitGlobe() {
+      stage.style.scale = "";
+      const top = stage.getBoundingClientRect().top;
+      let bottom = -Infinity;
+      wheel.querySelectorAll(".cps-wheel-glass").forEach((g) => { bottom = Math.max(bottom, g.getBoundingClientRect().bottom); });
+      const room = section.getBoundingClientRect().top + window.innerHeight * 0.985 - top;
+      const s = bottom > top ? Math.min(1, room / (bottom - top)) : 1;
+      if (s < 1) { stage.style.transformOrigin = "50% 0"; stage.style.scale = s.toFixed(4); }
+    }
+    fitGlobe();
+    window.addEventListener("resize", fitGlobe);
+
     let manual = 0;
     function nudge(dir) {
       manual += -(36 * dir);

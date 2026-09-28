@@ -30,10 +30,14 @@
     const update = () => {
       raf = 0;
       const top = wheel.getBoundingClientRect().top;
-      // full strength until the edge is nearly under the header, then gone by the time the wheel pins
-      const o = Math.max(0, Math.min(1, (top - 4) / 60));
-      band.style.opacity = o.toFixed(3);
-      band.style.visibility = o === 0 || top > window.innerHeight ? "hidden" : "visible";
+      // the band stays solid at the seam (so the edge never shows) and shrinks towards it
+      // over the last ~45% of a viewport of travel, uncovering the wheel gradually; it is
+      // gone by the time the wheel pins (fading it out made the whole top snap to sharp)
+      const t = Math.max(0, Math.min(1, (top - 4) / (window.innerHeight * 0.45)));
+      band.style.opacity = "1";
+      band.style.transformOrigin = "50% 0";
+      band.style.transform = `scaleY(${t.toFixed(4)})`;
+      band.style.visibility = t === 0 || top > window.innerHeight ? "hidden" : "visible";
     };
     window.addEventListener("scroll", () => { if (!raf) raf = requestAnimationFrame(update); }, { passive: true });
     window.addEventListener("resize", update);

@@ -179,6 +179,17 @@
       onUpdate: (self) => update(self.progress),
     });
 
+    /* links to the globe footer (#section-footer, inside the reveal card) land on the revealed
+       card, i.e. the end of this section's pin range, not on the card's resting spot; captured
+       on the document so it runs before main.js's generic anchor handler */
+    document.addEventListener("click", (e) => {
+      const a = e.target.closest && e.target.closest('a[href="#section-footer"]');
+      if (!a || !trigger || !root.contains(document.getElementById("section-footer"))) return;
+      e.preventDefault();
+      e.stopPropagation();
+      window.scrollTo({ top: trigger.end, behavior: "smooth" });
+    }, true);
+
     /* hand-off: the Toolkit stage shrinks into a rounded strip as this section arrives */
     const toolkit = document.getElementById("section-toolkit");
     if (toolkit) {

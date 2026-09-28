@@ -28,8 +28,10 @@
     LiaFaq.init();
     LiaRoi.init();
     LiaFooter.init();
-    if (window.LiaJourney) LiaJourney.init();   // appended sections (after the footer)
+    if (window.LiaJourney) LiaJourney.init();   // guillaumezhu.com sections (journey + toolkit before the FAQ, next after the footer)
+    if (window.LiaTeam) LiaTeam.init();         // contributor cards inside the journey pin
     if (window.LiaToolkit) LiaToolkit.init();
+    if (window.LiaTestimonials) LiaTestimonials.init(); // results deck, built like the toolkit
     if (window.LiaNext) LiaNext.init();
     LiaSectionNav.init();
     LiaChat.init();

@@ -1,0 +1,237 @@
+/* =============================================================================
+   team.css — "My journey": a title over the pinned "outcomes." gradient and the
+   three contributor cards that slide up under it at the end of the journey
+   section (markup: tools/team-section.html, scroll logic: js/team.js). Each card
+   is one viewport tall; js/team.js pins them one over the other. The card is the
+   reference's dark panel + photo with a frosted name badge, in both themes.
+   ============================================================================= */
+.traj__team {
+  position: relative;
+  z-index: 5;
+  --team-bg: #302f2f;
+  --team-strip: #262525;
+  --team-ink: #ffffff;
+  --team-muted: #8f8d8d;
+  --team-line: rgba(255, 255, 255, 0.55);
+  --team-name: #1c2b5e;
+  --team-role: #3d4b78;
+  /* everything scales with the viewport (no px caps), so the card fills the
+     stage under the title on any screen size or zoom level */
+  --team-heading-top: 6vh;
+  --team-title-size: min(8vw, 12vh);
+  --team-card-top: calc(var(--team-heading-top) + var(--team-title-size) * 1.12 + 3.5vh);
+  --team-card-h: calc(100vh - var(--team-card-top) - 5vh);
+  --team-u: calc(var(--team-card-h) / 100);
+}
+
+/* the title: a full-viewport layer that takes no room in the flow (js/team.js
+   pins it for the whole block and fades it in with the first card) */
+.team-heading {
+  position: relative;
+  z-index: 10;
+  height: 100vh;
+  margin-bottom: -100vh;
+  pointer-events: none;
+}
+.team-heading__title {
+  position: absolute;
+  top: var(--team-heading-top);
+  left: 0;
+  width: 100%;
+  margin: 0;
+  font-family: var(--gz-font);
+  font-size: var(--team-title-size);
+  font-weight: 700;          /* same type as the "outcomes." sentence (.traj__sentence) */
+  line-height: 0.9;
+  letter-spacing: -0.025em;
+  text-align: center;
+  color: var(--gz-cream);
+  text-shadow: 0 8px 40px rgba(0, 0, 0, 0.12);
+  will-change: transform, opacity;
+}
+
+/* one viewport per card (the scroll step); the visual card sits under the title,
+   so the gradient stage stays visible around it */
+.team-card {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  height: 100vh;
+  padding: var(--team-card-top) 4vw 0;
+  font-family: var(--gz-font);
+}
+/* soft white glow around the card: a halo sized like the card sits behind it and
+   a brighter patch drifts slowly left → right along it and back. js/team.js fades
+   a card's glow (--team-glow) while the next card slides over it */
+.team-card::before,
+.team-card::after {
+  content: "";
+  position: absolute;
+  top: var(--team-card-top);
+  left: 50%;
+  width: min(calc(100% - 8vw), calc(var(--team-card-h) * 1.85));
+  height: var(--team-card-h);
+  transform: translateX(-50%);
+  border-radius: calc(var(--team-u) * 3.4);
+  opacity: var(--team-glow, 1);
+  pointer-events: none;
+}
+.team-card::before {
+  box-shadow: 0 0 110px 28px rgba(255, 255, 255, 0.5), 0 0 36px 6px rgba(255, 255, 255, 0.45);
+}
+/* the patch travels inside a box 70px larger than the card on every side, so what
+   shows is its spill past the card's edges (the card itself covers the middle) */
+.team-card::after {
+  top: calc(var(--team-card-top) - 100px);
+  width: calc(min(calc(100% - 8vw), calc(var(--team-card-h) * 1.85)) + 200px);
+  height: calc(var(--team-card-h) + 200px);
+  border-radius: 0;
+  background: radial-gradient(ellipse at 50% 50%, #ffffff 0%, rgba(255, 255, 255, 0.95) 35%, rgba(255, 255, 255, 0.45) 58%, rgba(255, 255, 255, 0) 74%) no-repeat;
+  background-size: 48% 100%;
+  filter: blur(34px);
+  animation: team-glow-drift 11s ease-in-out infinite alternate;
+}
+@keyframes team-glow-drift {
+  from { background-position: 0% 50%; }
+  to   { background-position: 100% 50%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .team-card::after { animation: none; background-position: 50% 50%; }
+}
+.team-card__inner {
+  z-index: 1;
+  position: relative;
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  width: min(100%, calc(var(--team-card-h) * 1.85));
+  height: var(--team-card-h);
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: calc(var(--team-u) * 3.4);
+  background: var(--team-bg);
+  color: var(--team-ink);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.35);
+  will-change: transform;
+}
+.team-card__text {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: calc(var(--team-u) * 8) calc(var(--team-u) * 8) 0;
+}
+/* the reference's darker strip along the bottom of the text panel */
+.team-card__text::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0;
+  height: calc(var(--team-u) * 5);
+  background: var(--team-strip);
+}
+.team-card__bio {
+  max-width: 34ch;
+  margin: 0;
+  font-size: max(16px, min(calc(var(--team-u) * 5.4), 2.3vw));
+  font-weight: 600;
+  line-height: 1.24;
+  letter-spacing: -0.02em;
+  color: var(--team-muted);
+}
+.team-card__bio strong { font-weight: inherit; color: var(--team-ink); }
+.team-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(var(--team-u) * 1.6);
+  margin-top: calc(var(--team-u) * 6);
+}
+.team-card__btn {
+  display: inline-flex;
+  align-items: center;
+  padding: calc(var(--team-u) * 2) calc(var(--team-u) * 2.6);
+  border: 1px solid var(--team-line);
+  font-size: max(10px, calc(var(--team-u) * 2.2));
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--team-ink);
+  text-decoration: none;
+  transition: background-color 0.25s ease, color 0.25s ease;
+}
+.team-card__btn:hover { background: var(--team-ink); color: var(--team-bg); }
+.team-card__foot {
+  margin: auto 0 calc(var(--team-u) * 9.5);
+  font-size: max(10px, calc(var(--team-u) * 2));
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--team-muted);
+}
+
+/* photo on a pale blue ground, framed by a frosted badge with the name */
+.team-card__photo {
+  position: relative;
+  min-height: 0;
+  overflow: hidden;
+  background: linear-gradient(180deg, #a9bff0 0%, #d7e2f8 100%);
+}
+.team-card__photo img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 20%;
+}
+/* no frame: the name sits on a white fade across the bottom of the photo */
+.team-card__badge {
+  position: absolute;
+  inset: auto 0 0;
+  display: flex;
+  align-items: flex-end;
+}
+.team-card__badge-text {
+  width: 100%;
+  padding: 22% 21% 9%;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.86) 38%, #ffffff 100%);
+}
+.team-card__name {
+  margin: 0 0 6px;
+  font-family: var(--gz-font);
+  font-size: max(15px, calc(var(--team-u) * 4.4));
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+  color: var(--team-name);
+}
+.team-card__role {
+  margin: 0;
+  font-size: max(10px, calc(var(--team-u) * 2.1));
+  line-height: 1.35;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--team-role);
+}
+
+/* darkens a card while the next one slides over it (js/team.js scrubs its opacity) */
+.team-card__shade {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  background: #000;
+  pointer-events: none;
+}
+@media (max-width: 900px) {
+  .traj__team { --team-heading-top: 9vh; --team-title-size: min(12vw, 9vh); }
+  .team-card__inner { grid-template-columns: 1fr; grid-template-rows: auto minmax(0, 1fr); }
+  .team-card__text { padding-bottom: 0; }
+  .team-card__text::after { display: none; }
+  .team-card__inner { width: 100%; }
+  .team-card__bio { font-size: clamp(16px, 4.4vw, 22px); }
+  .team-card__actions { margin-top: 14px; }
+  .team-card__foot { display: none; }
+  .team-card__text { padding-bottom: 18px; }
+  .team-card__badge-text { padding: 18% 12% 7%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .team-heading { height: auto; margin-bottom: 0; padding: 12vh 0 0; }
+  .team-heading__title { position: static; }
+}

@@ -39,10 +39,55 @@
     }
   }
 
+  /* header contrast: the Menu / Get in touch / theme controls switch to light ink
+     over dark sections and dark ink over light ones (css/palette.css), whatever the
+     theme; over images, canvases and gradients they keep the theme's colours */
+  function toneAt(x, y) {
+    for (const el of document.elementsFromPoint(x, y)) {
+      if (el.closest("#staggered-menu")) continue;
+      const cs = getComputedStyle(el);
+      if (cs.visibility === "hidden" || parseFloat(cs.opacity) < 0.5) continue;
+      if (el.tagName === "CANVAS") return el.classList.contains("tk-card__cream") ? "light" : null;
+      if (el.tagName === "IMG" || el.tagName === "VIDEO") return null;
+      const c = cs.backgroundColor.match(/[\d.]+/g);
+      if (c && (c.length < 4 || +c[3] >= 0.5)) {
+        const lum = (0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2]) / 255;
+        return lum < 0.45 ? "dark" : "light";
+      }
+      if (cs.backgroundImage !== "none") return null;
+    }
+    return null;
+  }
+  function watchHeaderTone() {
+    const probe = document.querySelector("#staggered-menu .sm-get-in-touch");
+    if (!probe) return;
+    let raf = 0;
+    const update = () => {
+      raf = 0;
+      const r = probe.getBoundingClientRect();
+      const tone = toneAt(r.left + r.width / 2, r.top + r.height / 2);
+      root.classList.toggle("bp-hdr-on-dark", tone === "dark");
+      root.classList.toggle("bp-hdr-on-light", tone === "light");
+    };
+    /* re-check once the scroll (and the pinned scenes it drives) has settled */
+    let settle = 0;
+    const queue = () => {
+      if (!raf) raf = requestAnimationFrame(update);
+      clearTimeout(settle);
+      settle = setTimeout(() => { if (!raf) raf = requestAnimationFrame(update); }, 180);
+    };
+    window.addEventListener("scroll", queue, { passive: true });
+    window.addEventListener("resize", queue);
+    window.addEventListener("lia:themechange", queue);
+    window.addEventListener("load", queue);
+    queue();
+  }
+
   function init() {
     const btn = document.getElementById("theme-toggle");
     if (btn) btn.addEventListener("click", () => apply(current() === "dark" ? "light" : "dark"));
     syncControls();
+    watchHeaderTone();
   }
 
   window.LiaTheme = { init, apply, current, isDark: () => current() === "dark" };

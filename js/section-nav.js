@@ -6,7 +6,7 @@
 (function () {
   "use strict";
   const { animate, set } = LiaMotion;
-  const SECTIONS = ["hero", "features", "section-gallery", "section-cinematic-project", "section-faq", "roi-calculator", "testimonials", "section-footer"];
+  const SECTIONS = ["hero", "features", "section-gallery", "section-cinematic-project", "section-faq", "roi-calculator", "testimonials", "section-next"];
 
   function init() {
     const nav = document.getElementById("section-nav");

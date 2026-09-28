@@ -23,3 +23,11 @@
   mask-image: linear-gradient(90deg, #000 calc(var(--mf-edge) - 18vw), transparent var(--mf-edge));
   will-change: opacity;
 }
+
+/* start both marquee lines a small inset from the left edge instead of centring
+   them (centred, the first letters were clipped). js/features.js pulls the
+   right-moving second line back by one segment so it can't open a gap. */
+.lia-marquee-line {
+  align-self: flex-start;
+  margin-left: calc(clamp(16px, 2vw, 40px) - var(--marquee-lead, 0px));
+}

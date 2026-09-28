@@ -1,0 +1,32 @@
+/* =============================================================================
+   roi-stage.css — the ROI calculator shown on the Toolkit's cream cover
+   (moved there by tools/roi-stage.js, faded in by js/toolkit.js). The stage
+   holds on the calculator for an extra 160vh (ROI_HOLD in js/toolkit.js).
+   The calculator keeps its own layout; only its surroundings change: no page
+   background or section padding, and dark ink on the cream in both themes.
+   ============================================================================= */
+.tk--roi .tk__pin-height { height: calc(415vh + 160vh); }
+
+#roi-calculator.tk__roi {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 72px 0 32px;
+  /* the site's own light background (same wash as the page body), not the cream */
+  background:
+    radial-gradient(circle at 50% 0%, rgba(228, 44, 118, 0.1), transparent 28%),
+    radial-gradient(circle at 72% 46%, rgba(255, 34, 225, 0.08), transparent 24%),
+    #fdf9fb;
+  opacity: 0;
+  pointer-events: none;
+  /* site theme tokens, pinned to the light theme's ink for the cream ground */
+  --foreground: 333 25% 10%;
+  --fg-rgb: 10, 8, 15;
+  color: hsl(var(--foreground));
+}
+#roi-calculator.tk__roi.is-on { display: flex; }
+#roi-calculator.tk__roi > .page-container { width: 100%; transform-origin: 50% 50%; }
+#roi-calculator.tk__roi .roi-gauge-track { stroke: #fbd6f0; }
