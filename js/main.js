@@ -17,7 +17,12 @@
   })();
 
   function boot() {
-    if (window.gsap && window.ScrollTrigger) gsap.registerPlugin(ScrollTrigger);
+    if (window.gsap && window.ScrollTrigger) {
+      gsap.registerPlugin(ScrollTrigger);
+      /* mobile browsers resize the viewport every time the URL bar collapses;
+         without this every pinned scene re-lays-out mid-scroll and stutters */
+      ScrollTrigger.config({ ignoreMobileResize: true });
+    }
     LiaTheme.init();
     const preloading = LiaPreloader.init();
     LiaMenu.init();

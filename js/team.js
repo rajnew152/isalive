@@ -1,33 +1,69 @@
 /* =============================================================================
-   team.js — the contributor cards at the end of the journey section. The
-   journey keeps its own scroll length (the stylesheet's pin height); the cards
-   block sits after that, inside the same pin height, one viewport per card, so
-   the gradient stage stays pinned underneath while each card scrolls up and is
-   pinned over the previous one. A card darkens and shrinks a little while the
-   next one covers it; the last card shrinks into a rounded strip as the Toolkit
-   arrives, like the journey stage itself does.
+   team.js — the kora-style team panel at the end of the journey section. The
+   journey keeps its own scroll length (the stylesheet's pin height); the panel
+   sits after that, inside the same pin height, one viewport, so the gradient
+   stage stays pinned underneath while the panel scrolls up over it. Clicking a
+   member row opens the profile dialog (moved to <body>, so position:fixed is
+   viewport-true inside the pinned scene). The panel recedes a little as the
+   Toolkit arrives, like the journey stage itself does.
    ============================================================================= */
 (function () {
   "use strict";
 
-  function gutterScale() {
-    const w = window.innerWidth;
-    return 1 - gsap.utils.clamp(8, 40, w * 0.025 - 8) * 2 / w;
-  }
-
   function init() {
     const root = document.getElementById("section-journey");
     const team = root && root.querySelector(".traj__team");
-    if (!root || !team || !window.gsap || !window.ScrollTrigger) return;
+    if (!root || !team) return;
+
+    /* ---- member profile dialog ---- */
+    const modal = team.querySelector(".team-modal");
+    if (modal) {
+      document.body.appendChild(modal);
+      const members = modal.querySelectorAll(".team-modal__member");
+      const closeBtn = modal.querySelector(".team-modal__close");
+      const scrim = modal.querySelector(".team-modal__scrim");
+      let opener = null;
+      const open = (id) => {
+        members.forEach((m) => m.classList.toggle("is-active", m.dataset.member === id));
+        modal.classList.add("is-open");
+        modal.setAttribute("aria-hidden", "false");
+        document.body.style.overflow = "hidden";
+        if (closeBtn) closeBtn.focus();
+      };
+      const close = () => {
+        modal.classList.remove("is-open");
+        modal.setAttribute("aria-hidden", "true");
+        document.body.style.overflow = "";
+        if (opener) { opener.focus(); opener = null; }
+      };
+      /* delegated at the document level: the rows live inside ScrollTrigger's
+         pinned scene, whose pin-spacers re-parent elements — this keeps the
+         click working no matter where the rows end up */
+      document.addEventListener("click", (e) => {
+        const row = e.target instanceof Element && e.target.closest(".team-row");
+        if (!row) return;
+        e.preventDefault();
+        opener = row;
+        open(row.dataset.member);
+      });
+      if (closeBtn) closeBtn.addEventListener("click", close);
+      if (scrim) scrim.addEventListener("click", close);
+      window.addEventListener("keydown", (e) => {
+        if (e.key === "Escape" && modal.classList.contains("is-open")) close();
+      });
+    }
+
+    /* ---- scroll choreography (same shape as the old card deck, for one panel) ---- */
+    if (!window.gsap || !window.ScrollTrigger) return;
     gsap.registerPlugin(ScrollTrigger);
 
     const pinHeight = root.querySelector(".traj__pin-height");
-    const cards = Array.from(team.querySelectorAll(".team-card"));
-    if (!pinHeight || !cards.length) return;
+    const panel = team.querySelector(".team-panel");
+    if (!pinHeight || !panel) return;
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-    /* the journey's pin length comes from the stylesheet; the cards start where the
-       "outcomes." hold ends and add one viewport each (js/journey.js subtracts the
+    /* the journey's pin length comes from the stylesheet; the panel starts where
+       the "outcomes." hold ends and adds one viewport (js/journey.js subtracts the
        block again, so its own timeline keeps its original length) */
     const layout = () => {
       pinHeight.style.height = "";
@@ -42,11 +78,11 @@
     ScrollTrigger.addEventListener("refreshInit", layout);
 
     /* "My journey": pinned over the whole block; it rises and fades in with the
-       first card, so title and card arrive together */
+       panel, so title and panel arrive together */
     const heading = team.querySelector(".team-heading");
     const title = heading && heading.querySelector(".team-heading__title");
     if (heading && title) {
-      gsap.set(heading, { zIndex: cards.length + 1 });
+      gsap.set(heading, { zIndex: 2 });
       ScrollTrigger.create({
         trigger: heading,
         start: "top top",
@@ -59,50 +95,36 @@
       });
       gsap.fromTo(title, { autoAlpha: 0, y: 70, scale: 0.94, filter: "blur(8px)" }, {
         autoAlpha: 1, y: 0, scale: 1, filter: "blur(0px)", ease: "power2.out",
-        scrollTrigger: { trigger: cards[0], start: "top bottom", end: "top 30%", scrub: true, invalidateOnRefresh: true },
+        scrollTrigger: { trigger: panel, start: "top bottom", end: "top 30%", scrub: true, invalidateOnRefresh: true },
       });
       /* the "outcomes." sentence clears out of the way as the title comes in */
       const center = root.querySelector(".traj__center");
       if (center) {
         gsap.fromTo(center, { opacity: 1 }, {
           opacity: 0, ease: "none",
-          scrollTrigger: { trigger: cards[0], start: "top bottom", end: "top 55%", scrub: true, invalidateOnRefresh: true },
+          scrollTrigger: { trigger: panel, start: "top bottom", end: "top 55%", scrub: true, invalidateOnRefresh: true },
         });
       }
     }
 
-    cards.forEach((card, i) => {
-      gsap.set(card, { zIndex: i + 1 });
-      ScrollTrigger.create({
-        trigger: card,
-        start: "top top",
-        endTrigger: team,
-        end: "bottom bottom",
-        pin: true,
-        pinSpacing: false,
-        anticipatePin: 1,
-        invalidateOnRefresh: true,
-      });
-      /* the card underneath recedes while the next one slides over it */
-      const next = cards[i + 1];
-      if (next) {
-        const inner = card.querySelector(".team-card__inner");
-        const shade = card.querySelector(".team-card__shade");
-        const cover = gsap.timeline({
-          scrollTrigger: { trigger: next, start: "top bottom", end: "top top", scrub: true, invalidateOnRefresh: true },
-        });
-        cover.to(inner, { scale: 0.94, transformOrigin: "center center", ease: "none" }, 0);
-        if (shade) cover.to(shade, { opacity: 0.4, ease: "none" }, 0);
-        cover.fromTo(card, { "--team-glow": 1 }, { "--team-glow": 0, ease: "none" }, 0); // its glow gives way to the next card's
-      }
+    gsap.set(panel, { zIndex: 1 });
+    ScrollTrigger.create({
+      trigger: panel,
+      start: "top top",
+      endTrigger: team,
+      end: "bottom bottom",
+      pin: true,
+      pinSpacing: false,
+      anticipatePin: 1,
+      invalidateOnRefresh: true,
     });
 
-    /* keep the cards (and the title) inside the orange / purple stage: whatever part
+    /* keep the panel (and the title) inside the orange / purple stage: whatever part
        of them falls outside the stage's on-screen box is clipped away, so during the
        hand-off (when the stage shrinks and scrolls off) nothing hangs outside it */
     const stage = root.querySelector(".traj__container");
     if (stage) {
-      const clipEls = [heading, ...cards].filter(Boolean);
+      const clipEls = [heading, panel].filter(Boolean);
       let raf = 0;
       const clipToStage = () => {
         raf = 0;
@@ -120,15 +142,15 @@
       ScrollTrigger.addEventListener("refresh", queue);
     }
 
-    /* hand-off: the last card recedes a little as the Toolkit arrives (the gradient
+    /* hand-off: the panel recedes a little as the Toolkit arrives (the gradient
        stage behind it shrinks into its rounded strip, see js/journey.js) */
     const toolkit = document.getElementById("section-toolkit");
     if (toolkit) {
-      const last = cards[cards.length - 1].querySelector(".team-card__inner");
+      const inner = panel.querySelector(".team-panel__inner");
       const hand = gsap.timeline({
         scrollTrigger: { trigger: toolkit, start: "top bottom", end: "top 30%", scrub: true, invalidateOnRefresh: true },
       });
-      hand.to(last, { scale: 0.96, transformOrigin: "center center", ease: "none" }, 0);
+      if (inner) hand.to(inner, { scale: 0.96, transformOrigin: "center center", ease: "none" }, 0);
       if (heading) hand.to(heading, { opacity: 0, ease: "none" }, 0);
     }
   }

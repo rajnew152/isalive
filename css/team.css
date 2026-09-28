@@ -1,31 +1,25 @@
 /* =============================================================================
-   team.css — "My journey": a title over the pinned "outcomes." gradient and the
-   three contributor cards that slide up under it at the end of the journey
-   section (markup: tools/team-section.html, scroll logic: js/team.js). Each card
-   is one viewport tall; js/team.js pins them one over the other. The card is the
-   reference's dark panel + photo with a frosted name badge, in both themes.
+   team.css — "My journey": a title over the pinned "outcomes." gradient and a
+   kora-style panel under it (kora.framer.media): the three members listed on
+   the left (each row opens a profile dialog) and a rounded "we're hiring" card
+   on the right (markup: tools/team-section.html, logic: js/team.js). The
+   orange / purple journey stage stays untouched behind it.
    ============================================================================= */
 .traj__team {
   position: relative;
   z-index: 5;
-  --team-bg: #302f2f;
-  --team-strip: #262525;
-  --team-ink: #ffffff;
-  --team-muted: #8f8d8d;
-  --team-line: rgba(255, 255, 255, 0.55);
-  --team-name: #1c2b5e;
-  --team-role: #3d4b78;
-  /* everything scales with the viewport (no px caps), so the card fills the
+  --team-cream: #fdf7f0;
+  --team-ink: #241827;
+  /* everything scales with the viewport (no px caps), so the panel fills the
      stage under the title on any screen size or zoom level */
   --team-heading-top: 6vh;
   --team-title-size: min(8vw, 12vh);
-  --team-card-top: calc(var(--team-heading-top) + var(--team-title-size) * 1.12 + 3.5vh);
-  --team-card-h: calc(100vh - var(--team-card-top) - 5vh);
-  --team-u: calc(var(--team-card-h) / 100);
+  --team-panel-top: calc(var(--team-heading-top) + var(--team-title-size) * 1.12 + 3.5vh);
+  --team-panel-h: calc(100vh - var(--team-panel-top) - 5vh);
 }
 
 /* the title: a full-viewport layer that takes no room in the flow (js/team.js
-   pins it for the whole block and fades it in with the first card) */
+   pins it for the whole block and fades it in with the panel) */
 .team-heading {
   position: relative;
   z-index: 10;
@@ -50,186 +44,316 @@
   will-change: transform, opacity;
 }
 
-/* one viewport per card (the scroll step); the visual card sits under the title,
-   so the gradient stage stays visible around it */
-.team-card {
+/* ── the panel: one viewport, list left / hiring card right ── */
+.team-panel {
   position: relative;
   display: flex;
   align-items: flex-start;
   justify-content: center;
   height: 100vh;
-  padding: var(--team-card-top) 4vw 0;
+  padding: var(--team-panel-top) 4vw 0;
   font-family: var(--gz-font);
 }
-/* soft white glow around the card: a halo sized like the card sits behind it and
-   a brighter patch drifts slowly left → right along it and back. js/team.js fades
-   a card's glow (--team-glow) while the next card slides over it */
-.team-card::before,
-.team-card::after {
-  content: "";
-  position: absolute;
-  top: var(--team-card-top);
-  left: 50%;
-  width: min(calc(100% - 8vw), calc(var(--team-card-h) * 1.85));
-  height: var(--team-card-h);
-  transform: translateX(-50%);
-  border-radius: calc(var(--team-u) * 3.4);
-  opacity: var(--team-glow, 1);
-  pointer-events: none;
-}
-.team-card::before {
-  box-shadow: 0 0 110px 28px rgba(255, 255, 255, 0.5), 0 0 36px 6px rgba(255, 255, 255, 0.45);
-}
-/* the patch travels inside a box 70px larger than the card on every side, so what
-   shows is its spill past the card's edges (the card itself covers the middle) */
-.team-card::after {
-  top: calc(var(--team-card-top) - 100px);
-  width: calc(min(calc(100% - 8vw), calc(var(--team-card-h) * 1.85)) + 200px);
-  height: calc(var(--team-card-h) + 200px);
-  border-radius: 0;
-  background: radial-gradient(ellipse at 50% 50%, #ffffff 0%, rgba(255, 255, 255, 0.95) 35%, rgba(255, 255, 255, 0.45) 58%, rgba(255, 255, 255, 0) 74%) no-repeat;
-  background-size: 48% 100%;
-  filter: blur(34px);
-  animation: team-glow-drift 11s ease-in-out infinite alternate;
-}
-@keyframes team-glow-drift {
-  from { background-position: 0% 50%; }
-  to   { background-position: 100% 50%; }
-}
-@media (prefers-reduced-motion: reduce) {
-  .team-card::after { animation: none; background-position: 50% 50%; }
-}
-.team-card__inner {
-  z-index: 1;
-  position: relative;
+.team-panel__inner {
   display: grid;
-  grid-template-columns: 1.2fr 1fr;
-  width: min(100%, calc(var(--team-card-h) * 1.85));
-  height: var(--team-card-h);
-  overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: calc(var(--team-u) * 3.4);
-  background: var(--team-bg);
-  color: var(--team-ink);
-  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.35);
+  grid-template-columns: 1.15fr 0.85fr;
+  gap: clamp(24px, 4vw, 64px);
+  width: min(100%, 1180px);
+  height: var(--team-panel-h);
   will-change: transform;
 }
-.team-card__text {
-  position: relative;
+
+/* member list, kora-style rows */
+.team-list {
   display: flex;
   flex-direction: column;
+  justify-content: center;
   min-width: 0;
-  padding: calc(var(--team-u) * 8) calc(var(--team-u) * 8) 0;
 }
-/* the reference's darker strip along the bottom of the text panel */
-.team-card__text::after {
-  content: "";
-  position: absolute;
-  inset: auto 0 0;
-  height: calc(var(--team-u) * 5);
-  background: var(--team-strip);
-}
-.team-card__bio {
-  max-width: 34ch;
-  margin: 0;
-  font-size: max(16px, min(calc(var(--team-u) * 5.4), 2.3vw));
-  font-weight: 600;
-  line-height: 1.24;
-  letter-spacing: -0.02em;
-  color: var(--team-muted);
-}
-.team-card__bio strong { font-weight: inherit; color: var(--team-ink); }
-.team-card__actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: calc(var(--team-u) * 1.6);
-  margin-top: calc(var(--team-u) * 6);
-}
-.team-card__btn {
-  display: inline-flex;
+.team-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
   align-items: center;
-  padding: calc(var(--team-u) * 2) calc(var(--team-u) * 2.6);
-  border: 1px solid var(--team-line);
-  font-size: max(10px, calc(var(--team-u) * 2.2));
-  font-weight: 500;
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
-  color: var(--team-ink);
-  text-decoration: none;
-  transition: background-color 0.25s ease, color 0.25s ease;
+  gap: clamp(14px, 1.8vw, 26px);
+  padding: clamp(14px, 2.8vh, 28px) clamp(6px, 0.8vw, 14px);
+  border: 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: 0;
+  background: none;
+  color: var(--team-cream);
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 0.25s ease;
 }
-.team-card__btn:hover { background: var(--team-ink); color: var(--team-bg); }
-.team-card__foot {
-  margin: auto 0 calc(var(--team-u) * 9.5);
-  font-size: max(10px, calc(var(--team-u) * 2));
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--team-muted);
-}
-
-/* photo on a pale blue ground, framed by a frosted badge with the name */
-.team-card__photo {
-  position: relative;
-  min-height: 0;
+.team-row:first-child { border-top: 1px solid rgba(255, 255, 255, 0.4); }
+.team-row:hover,
+.team-row:focus-visible { background: rgba(255, 255, 255, 0.08); }
+.team-row__ava {
+  width: clamp(52px, 8.5vh, 76px);
+  height: clamp(52px, 8.5vh, 76px);
+  flex-shrink: 0;
   overflow: hidden;
-  background: linear-gradient(180deg, #a9bff0 0%, #d7e2f8 100%);
+  border-radius: 50%;
 }
-.team-card__photo img {
+.team-row__ava img {
   display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
   object-position: 50% 20%;
 }
-/* no frame: the name sits on a white fade across the bottom of the photo */
-.team-card__badge {
-  position: absolute;
-  inset: auto 0 0;
-  display: flex;
-  align-items: flex-end;
-}
-.team-card__badge-text {
-  width: 100%;
-  padding: 22% 21% 9%;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.86) 38%, #ffffff 100%);
-}
-.team-card__name {
-  margin: 0 0 6px;
-  font-family: var(--gz-font);
-  font-size: max(15px, calc(var(--team-u) * 4.4));
+.team-row__meta { min-width: 0; }
+.team-row__meta strong {
+  display: block;
+  font-size: clamp(17px, 2.9vh, 25px);
   font-weight: 600;
-  line-height: 1.1;
+  line-height: 1.2;
   letter-spacing: -0.01em;
-  color: var(--team-name);
 }
-.team-card__role {
-  margin: 0;
-  font-size: max(10px, calc(var(--team-u) * 2.1));
-  line-height: 1.35;
-  letter-spacing: 0.03em;
-  text-transform: uppercase;
-  color: var(--team-role);
+.team-row__meta em {
+  display: block;
+  margin-top: 4px;
+  font-style: normal;
+  font-size: clamp(12px, 1.8vh, 15px);
+  opacity: 0.8;
+}
+.team-row__num {
+  font-size: clamp(11px, 1.6vh, 13px);
+  letter-spacing: 0.1em;
+  opacity: 0.75;
+}
+.team-row__plus {
+  display: grid;
+  place-items: center;
+  width: clamp(32px, 4.6vh, 40px);
+  height: clamp(32px, 4.6vh, 40px);
+  border: 1.5px solid rgba(255, 255, 255, 0.85);
+  border-radius: 50%;
+  font-size: clamp(16px, 2.4vh, 20px);
+  font-weight: 300;
+  line-height: 1;
+  transition: transform 0.3s ease, background-color 0.3s ease, color 0.3s ease;
+}
+.team-row:hover .team-row__plus,
+.team-row:focus-visible .team-row__plus {
+  transform: rotate(90deg);
+  background: var(--team-cream);
+  color: #6d1b4b;
 }
 
-/* darkens a card while the next one slides over it (js/team.js scrubs its opacity) */
-.team-card__shade {
+/* the hiring card on the right */
+.team-hire {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  min-height: 0;
+  overflow: hidden;
+  border-radius: clamp(18px, 3vh, 28px);
+  background: #2b1626;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.35);
+}
+.team-hire__img {
   position: absolute;
   inset: 0;
-  opacity: 0;
-  background: #000;
-  pointer-events: none;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 15%;
 }
+.team-hire::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(20, 6, 18, 0) 28%, rgba(20, 6, 18, 0.55) 58%, rgba(20, 6, 18, 0.9) 100%);
+}
+.team-hire__body {
+  position: relative;
+  z-index: 1;
+  padding: clamp(20px, 3.4vh, 36px);
+  color: #ffffff;
+}
+.team-hire__title {
+  margin: 0;
+  font-size: clamp(24px, 4.6vh, 42px);
+  font-weight: 700;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+}
+.team-hire__text {
+  margin: 10px 0 0;
+  max-width: 32ch;
+  font-size: clamp(13px, 1.9vh, 15.5px);
+  line-height: 1.55;
+  color: rgba(255, 255, 255, 0.82);
+}
+.team-hire__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: clamp(14px, 2.4vh, 22px);
+  padding: 12px 22px;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #2b1626;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: transform 0.25s ease;
+}
+.team-hire__btn:hover { transform: translateY(-2px); }
+.team-hire__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+/* ── member profile dialog (js/team.js moves it to <body> and toggles it) ── */
+.team-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  font-family: var(--gz-font);
+}
+.team-modal.is-open { display: flex; }
+.team-modal__scrim {
+  position: absolute;
+  inset: 0;
+  background: rgba(24, 8, 22, 0.45);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+.team-modal__card {
+  position: relative;
+  width: min(880px, 96vw);
+  max-height: 90vh;
+  overflow: auto;
+  border-radius: 26px;
+  background: #fdfaf6;
+  color: var(--team-ink);
+  box-shadow: 0 40px 120px rgba(0, 0, 0, 0.4);
+}
+.team-modal__close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(36, 24, 39, 0.07);
+  color: var(--team-ink);
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+.team-modal__close:hover { background: rgba(36, 24, 39, 0.14); }
+.team-modal__member {
+  display: none;
+  grid-template-columns: 0.85fr 1.15fr;
+  gap: clamp(14px, 2vw, 22px);
+  padding: 14px;
+}
+.team-modal__member.is-active { display: grid; }
+.team-modal__photo {
+  min-height: 340px;
+  overflow: hidden;
+  border-radius: 18px;
+  background: linear-gradient(180deg, #a9bff0 0%, #d7e2f8 100%);
+}
+.team-modal__photo img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 20%;
+}
+.team-modal__body {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: clamp(16px, 3vw, 30px) clamp(16px, 3vw, 30px) clamp(16px, 3vw, 26px) clamp(6px, 1vw, 10px);
+}
+.team-modal__kicker {
+  margin: 0 0 6px;
+  font-size: 13px;
+  color: rgba(36, 24, 39, 0.55);
+}
+.team-modal__name {
+  margin: 0 0 14px;
+  font-size: clamp(26px, 4vw, 34px);
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  line-height: 1.1;
+}
+.team-modal__bio {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.65;
+  color: rgba(36, 24, 39, 0.72);
+}
+.team-modal__foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px 20px;
+  margin-top: auto;
+  padding-top: 24px;
+}
+.team-modal__socials {
+  display: flex;
+  gap: 10px;
+}
+.team-modal__socials a {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border: 1px solid rgba(36, 24, 39, 0.18);
+  border-radius: 50%;
+  color: var(--team-ink);
+  transition: background-color 0.2s ease;
+}
+.team-modal__socials a:hover { background: rgba(36, 24, 39, 0.08); }
+.team-modal__socials svg { width: 15px; height: 15px; }
+.team-modal__email span {
+  display: block;
+  margin-bottom: 3px;
+  font-size: 12px;
+  color: rgba(36, 24, 39, 0.5);
+}
+.team-modal__email a {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--team-ink);
+  text-decoration: none;
+}
+.team-modal__email a:hover { text-decoration: underline; }
+
 @media (max-width: 900px) {
   .traj__team { --team-heading-top: 9vh; --team-title-size: min(12vw, 9vh); }
-  .team-card__inner { grid-template-columns: 1fr; grid-template-rows: auto minmax(0, 1fr); }
-  .team-card__text { padding-bottom: 0; }
-  .team-card__text::after { display: none; }
-  .team-card__inner { width: 100%; }
-  .team-card__bio { font-size: clamp(16px, 4.4vw, 22px); }
-  .team-card__actions { margin-top: 14px; }
-  .team-card__foot { display: none; }
-  .team-card__text { padding-bottom: 18px; }
-  .team-card__badge-text { padding: 18% 12% 7%; }
+  .team-panel__inner {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto minmax(0, 1fr);
+    gap: 18px;
+  }
+  .team-row { padding: 12px 6px; }
+  .team-row__ava { width: 48px; height: 48px; }
+  .team-hire { min-height: 30vh; }
+  .team-modal__member { grid-template-columns: 1fr; }
+  .team-modal__photo { min-height: 0; aspect-ratio: 4 / 3; }
+  .team-modal__body { padding: 6px 12px 16px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .team-heading { height: auto; margin-bottom: 0; padding: 12vh 0 0; }

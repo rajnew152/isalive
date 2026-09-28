@@ -5,7 +5,7 @@
    The calculator keeps its own layout; only its surroundings change: no page
    background or section padding, and dark ink on the cream in both themes.
    ============================================================================= */
-.tk--roi .tk__pin-height { height: calc(415vh + 160vh); }
+.tk--roi .tk__pin-height { height: calc(280vh + 160vh); }
 
 #roi-calculator.tk__roi {
   position: absolute;

@@ -46,8 +46,13 @@
       return bottom + (top - bottom) * fy;
     }
     /* --tk-cover (css/palette.css) is the cover colour; the reference cream otherwise */
-    const rootStyle = getComputedStyle(document.documentElement);
-    const color = rootStyle.getPropertyValue("--tk-cover").trim() || rootStyle.getPropertyValue("--gz-cream").trim() || CREAM;
+    /* the cover colour depends on the day / night theme, so it is re-read on toggle */
+    const readColor = () => {
+      const rootStyle = getComputedStyle(document.documentElement);
+      return rootStyle.getPropertyValue("--tk-cover").trim() || rootStyle.getPropertyValue("--gz-cream").trim() || CREAM;
+    };
+    let color = readColor();
+    window.addEventListener("lia:themechange", () => { color = readColor(); draw(now()); });
     const t0 = performance.now();
     const now = () => (performance.now() - t0) / 1000;
     let progress = 0, raf = null, w = 1, h = 1;
@@ -293,9 +298,20 @@
 
     const front = { count: 0, rot: 0 }, art = { count: 0, rot: 0 };
 
+    /* art deck only: deal over the first ART_ONLY_DEAL of the pin, hold the full fan
+       open until ART_ONLY_HOLD (so it can be seen and clicked), then gather / fill / grow */
+    const ART_ONLY_DEAL = 0.42, ART_ONLY_HOLD = 0.58;
+    const FAN_OPEN = ART_DEAL_END - 0.001;
+    function artMap(p) {
+      if (p < ART_ONLY_DEAL) return FLIP_END + (p / ART_ONLY_DEAL) * (FAN_OPEN - FLIP_END);
+      if (p < ART_ONLY_HOLD) return FAN_OPEN;
+      return ART_DEAL_END + ((p - ART_ONLY_HOLD) / (1 - ART_ONLY_HOLD)) * (1 - ART_DEAL_END);
+    }
+    let artGathered = false;
+
     function update(p) {
       if (ripple) killRipple();
-      if (artOnly) p = FLIP_END + p * (1 - FLIP_END);
+      if (artOnly) p = artMap(p);
 
       const artPhase = p >= FLIP_END;
       const artInteractive = artPhase && p < ART_STACK_END;
@@ -337,6 +353,15 @@
       if (subFront) gsap.set(subFront, { autoAlpha: 1 - norm(flip, 0, 0.5) });
       if (subArt) gsap.set(subArt, { autoAlpha: norm(flip, 0.5, 1) });
 
+      /* scrolled back out of the gather: re-open the fan (slot angles, the wheel's
+         turn, the transition card back to its own place in the stack) */
+      if (p < ART_DEAL_END && artGathered) {
+        artSlots.forEach((s, i) => gsap.set(s, { rotation: i * STEP }));
+        if (creamSlot) gsap.set(creamSlot, { zIndex: artSlots.indexOf(creamSlot) + 1 });
+        art.rot = -1; // makes deal() turn the wheel back to the fan's centre
+        artGathered = false;
+      }
+
       /* 4. deal the art-direction deck (the transition card comes last) */
       const artDealt = Math.min(Math.floor(norm(p, FLIP_END, ART_DEAL_END) * artSlots.length), artSlots.length - 1);
       deal(artSlots, artWheel, artDealt, art);
@@ -345,6 +370,7 @@
       if (p >= ART_DEAL_END) {
         gather(artSlots, artWheel, norm(p, ART_DEAL_END, ART_STACK_END));
         if (creamSlot) gsap.set(creamSlot, { zIndex: artSlots.length + 20 });
+        artGathered = true;
       }
       if (!creamCard) return;
 

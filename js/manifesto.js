@@ -17,11 +17,16 @@
     el.dataset.split = "1";
   }
 
+  /* the sentence appears twice on the page (before the industries wheel and after the
+     Platform deck): every .mf section runs its own copy of the sequence */
   function init() {
-    const root = document.getElementById("section-manifesto");
-    if (!root || !window.gsap || !window.ScrollTrigger) return;
+    if (!window.gsap || !window.ScrollTrigger) return;
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     gsap.registerPlugin(ScrollTrigger);
+    document.querySelectorAll("section.mf").forEach(setup);
+  }
+
+  function setup(root) {
 
     const pinHeight = root.querySelector(".mf__pin-height");
     const container = root.querySelector(".mf__container");

@@ -172,9 +172,10 @@ const branded = require("./brand-content").apply(replica);
 const warmed = require("./palette").warmPage(branded).text;
 
 /* ---------------------------------------------------------------- 10. globe footer inside the closing section's reveal card (see tools/next-globe.js) */
-/* ---------------------------------------------------------------- 11. ROI calculator on the Toolkit's cream cover (see tools/roi-stage.js) */
-const result = require("./roi-stage").apply(require("./next-globe").apply(warmed))
-  .replace('<link rel="stylesheet" href="css/perf.css"/>', '<link rel="stylesheet" href="css/palette.css"/>\n<link rel="stylesheet" href="css/perf.css"/>')
+/* ---------------------------------------------------------------- 11. the ROI calculator stays its own section after the Platform deck (tools/roi-stage.js, which
+   moved it onto the deck's cover, is no longer applied; the manifesto plays there instead) */
+const result = require("./next-globe").apply(warmed)
+  .replace('<link rel="stylesheet" href="css/perf.css"/>', '<link rel="stylesheet" href="css/palette.css"/>\n<link rel="stylesheet" href="css/perf.css"/>\n<link rel="stylesheet" href="css/mobile.css"/>')
   .replace('<script src="js/card-demo.js"></script>', '<script src="js/card-demo.js"></script>\n<script src="js/section-seams.js"></script>\n<script src="js/header-contrast.js"></script>');
 fs.writeFileSync(out, result);
 console.log("wrote", out, result.length, "bytes");

@@ -384,6 +384,9 @@ r(/<section id="testimonials"[\s\S]*?<\/section>/,
   require("fs").readFileSync(require("path").join(__dirname, "testimonials-section.html"), "utf8").trimEnd().replace(/\$/g, "$$$$"));
 s('<link rel="stylesheet" href="css/team.css"/>', '<link rel="stylesheet" href="css/team.css"/>\n<link rel="stylesheet" href="css/testimonials.css"/>');
 s('<script src="js/toolkit.js"></script>', '<script src="js/toolkit.js"></script>\n<script src="js/testimonials.js"></script>');
+/* click-to-flip cards (Platform + Testimonials) and the two stages' colour gradients */
+s('<link rel="stylesheet" href="css/testimonials.css"/>', '<link rel="stylesheet" href="css/testimonials.css"/>\n<link rel="stylesheet" href="css/card-flip.css"/>');
+s('<script src="js/testimonials.js"></script>', '<script src="js/testimonials.js"></script>\n<script src="js/card-flip.js"></script>');
 
 /* ============================== menu ============================== */
 t("AI Products", "Platform");
@@ -422,6 +425,24 @@ t("Design Studio", "Enterprise AI deployment · India-native");
   ["lightroom.svg", "Lightroom — Photo editing", "agni-languages.svg", "30+ Languages — Hinglish-native, sub-300ms"],
 ].forEach(([from, fromAlt, to, toAlt]) =>
   s(`src="assets/toolkit/${from}" alt="${fromAlt}"`, `src="assets/toolkit/${to}" alt="${toAlt}"`));
+/* every Platform card flips on click (js/card-flip.js, css/card-flip.css): the card art is the
+   front face, a short explanation of the capability is the back */
+const PLATFORM_BACKS = {
+  "agni-agent-builder": ["Agent Builder", "Describe your agent in plain language: pick its voice, accent and persona, set goals and guardrails, and test it live before a single customer call."],
+  "agni-knowledge-base": ["Knowledge Base", "Upload FAQs, policies, price lists and PDFs. The agent answers from your own documents, so every reply stays accurate and on-brand."],
+  "agni-tools": ["Tools", "Warm-transfer to a human, trigger your APIs mid-call, navigate IVRs and send SMS or WhatsApp follow-ups, all as actions the agent takes."],
+  "agni-calling": ["Calling", "Run outbound campaigns and answer inbound lines at scale, with retry rules, calling windows and DND compliance built in."],
+  "agni-analytics": ["Call Analytics", "Every call is recorded, transcribed and scored for sentiment, intent and outcome, so you know what happened and what to do next."],
+  "agni-webhooks": ["API & Webhooks", "Push call outcomes to your CRM, book slots in your calendar and stream live events to your own stack as each call happens."],
+  "agni-languages": ["30+ Languages", "Hindi, Hinglish, Tamil, Telugu and more, with natural code-switching mid-sentence and replies in under 300 ms."],
+};
+r(/<img class="tk-card__motion" src="assets\/toolkit\/(agni-[a-z-]+)\.svg" alt="([^"]*)" draggable="false"\/>/g, (m, key, alt) => {
+  const [title, text] = PLATFORM_BACKS[key];
+  return `<div class="tk-card__motion tk-flip" data-flip="${key}"><div class="tk-flip__inner">` +
+    `<img class="tk-flip__face" src="assets/toolkit/${key}.svg" alt="${alt}" draggable="false"/>` +
+    `<div class="tk-flip__face tk-flip__back"><p class="tk-flip__title">${title.replace(/&/g, "&amp;")}</p>` +
+    `<p class="tk-flip__text">${text}</p><p class="tk-flip__hint">Tap to flip back</p></div></div></div>`;
+}, 7);
 t("If our visions align,", "Ready when you are,");
 t("let&rsquo;s shape what&rsquo;s next together.", "let&rsquo;s put your calls to work.");
 t("If our visions align, let&rsquo;s shape what&rsquo;s next together.", "Ready when you are, let&rsquo;s put your calls to work.");
@@ -461,6 +482,19 @@ r(/<script type="application\/ld\+json">[\s\S]*?<\/script>/g,
   () => '<script type="application/ld+json">' + JSON.stringify([ORG, SITE, APP, FAQLD][ld++]) + "</script>", 4);
 
 /* ============================== apply ============================== */
+/* ============================== moved: manifesto after the Platform deck ============================== */
+/* the "Emotion wins the conversation…" sentence plays right after the Platform deck's light cover
+   (where the ROI calculator used to fade in); the ROI calculator follows it as its own section */
+r(/(\n\n<!-- =+ -->\n<!-- "I create experiences…" manifesto[\s\S]*?\n<\/section>\n)([\s\S]*?<section id="section-toolkit"[\s\S]*?\n<\/section>\n)/,
+  "$2$1");
+/* ============================== added: a second copy of the manifesto ============================== */
+/* the same sentence also plays between the feature carousel and the industries wheel (its original
+   spot); js/manifesto.js drives every .mf section, js/section-seams.js feathers the wheel into it */
+r(/\n(?=<!-- =+ -->\n<section id="section-cinematic-project")/,
+  require("fs").readFileSync(require("path").join(__dirname, "manifesto-section.html"), "utf8").trimEnd()
+    .replace("Plays after the Platform deck, before the ROI calculator; inserted by  ", "Second copy, between the feature carousel and the industries wheel; by  ")
+    .replace('id="section-manifesto"', 'id="section-manifesto-intro"').replace(/\$/g, "$$$$") + "\n\n");
+
 function apply(html) {
   ld = 0;
   for (const [re, to, n, label] of rules) {

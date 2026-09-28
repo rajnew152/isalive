@@ -1,67 +1,296 @@
 /* =============================================================================
-   testimonials.css — the Results deck (#testimonials), styled after the Toolkit
-   stage: the section reuses the .tk layout classes from css/journey-toolkit.css
-   (stage, header, wheel, slots, card geometry) and this file draws the card
-   faces. Sizes inside a card are container-query units, so every face scales
-   with the card width js/toolkit-style fitting may set (--tk-card-w).
+   testimonials.css — the Results wall (#testimonials), styled after slothUI's
+   testimonial masonry (dribbble.com/shots/24428142): a lavender panel, one
+   viewport tall, split in two — intro copy on the left, three columns of
+   rounded cards on the right drifting vertically (columns 1 and 3 move up,
+   column 2 moves down). Each column's card set is cloned by js/testimonials.js
+   until it covers the wall, so the loop is seamless; the animation only starts
+   once the section carries .is-ready (no clone → no motion, never a gap).
    ============================================================================= */
-.tm .tk__pin-height { height: 320vh; }
-.tm .tk__subtitle { position: static; }
-.tm .tk-card { container-type: inline-size; }
-
-.tm-card {
+.tw {
+  position: relative;
+  background: #fbe9f2;
+  color: #331226;
+}
+/* soft seam: the top of the panel fades out of the previous section's page
+   background (works in both themes — --background flips with the theme), so
+   the FAQ and the testimonial wall read as one continuous surface */
+.tw::before {
+  content: "";
   position: absolute;
-  inset: 0;
+  inset: 0 0 auto 0;
+  height: min(320px, 38vh);
+  background: linear-gradient(180deg, hsl(var(--background)) 0%, hsl(var(--background) / 0.6) 45%, hsl(var(--background) / 0) 100%);
+  pointer-events: none;
+  z-index: 0;
+}
+.tw__stage {
+  position: relative;
+  z-index: 1;
+}
+.tw__stage {
+  display: grid;
+  grid-template-columns: minmax(280px, 5fr) 7fr;
+  gap: clamp(28px, 4.5vw, 72px);
+  align-items: center;
+  /* taller than one viewport, so the panel keeps filling the screen while it
+     scrolls through instead of immediately revealing the dark section below */
+  height: 125vh;
+  height: 125svh;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 84px clamp(16px, 3vw, 40px) 0;
+}
+
+/* ── left: intro copy ── */
+.tw__intro {
+  text-align: left;
+  padding-bottom: 32px;
+}
+.tw__chip {
+  display: inline-block;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #d92869;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  box-shadow: 0 1px 2px rgba(51, 18, 38, 0.08);
+}
+.tw__title {
+  margin: 16px 0 0;
+  font-family: var(--font-poppins, "Geist", Arial, sans-serif);
+  font-size: clamp(1.9rem, 3.2vw, 3rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.08;
+}
+.tw__lead {
+  margin: 18px 0 0;
+  max-width: 26rem;
+  font-size: 0.95rem;
+  line-height: 1.7;
+  color: rgba(51, 18, 38, 0.62);
+}
+.tw__rating {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 26px;
+}
+.tw__rating .tw-stars { margin: 0; }
+.tw__rating-note {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: rgba(51, 18, 38, 0.75);
+}
+.tw__trust {
+  margin: 8px 0 0;
+  font-size: 0.78rem;
+  color: rgba(51, 18, 38, 0.5);
+}
+
+/* ── right: the wall, three independent columns, faded at both edges ── */
+.tw__wall {
+  align-self: stretch;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(180deg, transparent 0, #000 48px, #000 calc(100% - 40px), transparent 100%);
+  mask-image: linear-gradient(180deg, transparent 0, #000 48px, #000 calc(100% - 40px), transparent 100%);
+}
+.tw__col {
+  min-width: 0;
+  min-height: 0;
+}
+.tw__track {
   display: flex;
   flex-direction: column;
-  padding: 8cqw 8cqw 9cqw;
-  border-radius: 6.8% / 4.8%;
-  background: var(--tm-bg);
-  color: var(--tm-ink);
-  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.35);
+}
+.tw__set {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-bottom: 16px;
+}
+
+/* columns 1 & 3 drift up, 2 & 4 drift down; each with its own speed and phase
+   (--tw-dur / --tw-off inline on the column). Hovering a column pauses it. */
+@keyframes tw-drift-up {
+  from { transform: translate3d(0, 0, 0); }
+  to   { transform: translate3d(0, -50%, 0); }
+}
+@keyframes tw-drift-down {
+  from { transform: translate3d(0, -50%, 0); }
+  to   { transform: translate3d(0, 0, 0); }
+}
+.tw.is-ready .tw__track {
+  animation: tw-drift-up var(--tw-dur, 50s) linear infinite;
+  animation-delay: var(--tw-off, 0s);
+  will-change: transform;
+}
+.tw.is-ready .tw__col--down .tw__track { animation-name: tw-drift-down; }
+.tw__col:hover .tw__track { animation-play-state: paused; }
+@media (prefers-reduced-motion: reduce) {
+  .tw .tw__track { animation: none !important; }
+}
+
+/* ── cards ── */
+.tw-card {
+  border-radius: 22px;
+  padding: 24px 22px;
+  background: #ffffff;
+  color: #331226;
+  box-shadow: 0 2px 6px rgba(51, 18, 38, 0.05), 0 14px 34px rgba(51, 18, 38, 0.07);
   user-select: none;
 }
-.tm-card__industry {
-  margin: 0 0 auto;
-  font-size: 4cqw;
-  font-weight: 500;
+.tw-tag {
+  display: inline-block;
+  margin-bottom: 12px;
+  padding: 4px 11px;
+  border-radius: 999px;
+  background: #fce4ee;
+  color: #d92869;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+}
+.tw-heading {
+  margin: 0 0 10px;
+  font-family: var(--font-poppins, "Geist", Arial, sans-serif);
+  font-size: 1.3rem;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  line-height: 1.2;
+}
+.tw-text {
+  margin: 0;
+  font-size: 0.84rem;
+  line-height: 1.65;
+  color: rgba(51, 18, 38, 0.62);
+}
+.tw-text + .tw-text { margin-top: 8px; }
+.tw-stars {
+  margin-bottom: 10px;
+  color: #f6a41f;
+  font-size: 0.95rem;
+  letter-spacing: 0.18em;
   line-height: 1;
+}
+.tw-stars:last-child { margin-bottom: 0; }
+.tw-text + .tw-stars, .tw-heading + .tw-stars { margin-top: 14px; }
+.tw-quote {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.65;
+  color: rgba(51, 18, 38, 0.8);
+}
+.tw-who {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 16px;
+}
+.tw-who__meta { display: flex; flex-direction: column; min-width: 0; }
+.tw-who__meta strong { font-size: 0.82rem; font-weight: 600; line-height: 1.3; }
+.tw-who__meta em { font-style: normal; font-size: 0.72rem; color: rgba(51, 18, 38, 0.5); line-height: 1.35; }
+.tw-ava {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  color: #ffffff;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+.tw-ava--a { background: linear-gradient(145deg, #e345c4, #ff9478); }
+.tw-ava--b { background: linear-gradient(145deg, #5b3cc4, #8a5cf0); }
+.tw-ava--c { background: linear-gradient(145deg, #f73679, #ff8f6b); }
+.tw-ava--d { background: linear-gradient(145deg, #c81062, #ff7a95); }
+.tw-ava--e { background: linear-gradient(145deg, #2b1626, #6d3a5c); }
+.tw-ava--f { background: linear-gradient(145deg, #d92869, #f973a2); }
+
+/* the big decorative quote glyph card */
+.tw-mark {
+  display: block;
+  height: 34px;
+  color: #d92869;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 64px;
+  line-height: 0.9;
+}
+
+/* ── stat cards: one colour way each, from the site's palette ── */
+.tw-card--stat .tw-kicker {
+  margin: 0 0 14px;
+  font-size: 0.66rem;
+  font-weight: 600;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  opacity: 0.7;
+  opacity: 0.75;
 }
-.tm-card__headline {
-  margin: 0 0 6cqw;
-  font-size: 11.5cqw;
+.tw-card--stat .tw-big {
+  margin: 0 0 14px;
+  font-family: var(--font-poppins, "Geist", Arial, sans-serif);
+  font-size: 1.5rem;
   font-weight: 700;
-  line-height: 1.02;
-  letter-spacing: -0.03em;
+  letter-spacing: -0.02em;
+  line-height: 1.12;
 }
-.tm-card__pill {
+.tw-card--stat .tw-pill {
+  display: inline-block;
   align-self: flex-start;
-  padding: 2.6cqw 4.8cqw;
+  padding: 6px 13px;
   border-radius: 999px;
-  background: var(--tm-pill);
-  color: var(--tm-pill-ink);
-  font-size: 4.3cqw;
+  background: var(--tw-pill, #fce4ee);
+  color: var(--tw-pill-ink, #d92869);
+  font-size: 0.72rem;
   font-weight: 600;
   line-height: 1.2;
 }
-.tm-card__quote {
-  margin: auto 0 0;
-  padding-top: 6cqw;
-  font-size: 4.6cqw;
-  line-height: 1.45;
-  opacity: 0.82;
+.tw-card--stat .tw-note {
+  margin: 12px 0 0;
+  font-size: 0.8rem;
+  line-height: 1.6;
+  opacity: 0.8;
 }
+.tw-card--grad   { background: linear-gradient(145deg, #e345c4 0%, #ff9478 100%); color: #ffffff; --tw-pill: #ffffff; --tw-pill-ink: #b3268c; }
+.tw-card--plum   { background: #2b1626; color: #ffe3f3; --tw-pill: linear-gradient(90deg, #fd44d5, #fd8365); --tw-pill-ink: #ffffff; }
+.tw-card--pink   { background: #f73679; color: #ffffff; --tw-pill: #ffffff; --tw-pill-ink: #c21a55; }
+.tw-card--violet { background: linear-gradient(160deg, #5b3cc4 0%, #8a5cf0 100%); color: #f3ecff; --tw-pill: #ff9478; --tw-pill-ink: #2a1060; }
 
-/* one colour way per card, in deck order — the site's palette: the magenta →
-   coral accent gradient, hot pink, rose, the journey gradient's orange and
-   violet, the page's light ground and a deep plum, each with high-contrast ink */
-.tm .tk__slot:nth-child(1) .tm-card { --tm-bg: linear-gradient(145deg, #e345c4 0%, #ff9478 100%); --tm-ink: #ffffff; --tm-pill: #ffffff; --tm-pill-ink: #b3268c; }
-.tm .tk__slot:nth-child(2) .tm-card { --tm-bg: #2b1626; --tm-ink: #ffe3f3; --tm-pill: linear-gradient(90deg, #fd44d5, #fd8365); --tm-pill-ink: #ffffff; }
-.tm .tk__slot:nth-child(3) .tm-card { --tm-bg: #fdf9fb; --tm-ink: #1f1d1d; --tm-pill: linear-gradient(90deg, #e345c4, #ff9478); --tm-pill-ink: #ffffff; }
-.tm .tk__slot:nth-child(4) .tm-card { --tm-bg: #ff6b4a; --tm-ink: #2b0d05; --tm-pill: #2b0d05; --tm-pill-ink: #ffd9cf; }
-.tm .tk__slot:nth-child(5) .tm-card { --tm-bg: linear-gradient(160deg, #5b3cc4 0%, #8a5cf0 100%); --tm-ink: #f3ecff; --tm-pill: #ff9478; --tm-pill-ink: #2a1060; }
-.tm .tk__slot:nth-child(6) .tm-card { --tm-bg: #fbd6f0; --tm-ink: #4a1238; --tm-pill: #4a1238; --tm-pill-ink: #fbd6f0; }
-.tm .tk__slot:nth-child(7) .tm-card { --tm-bg: #f73679; --tm-ink: #ffffff; --tm-pill: #ffffff; --tm-pill-ink: #c21a55; }
+/* ── responsive: 3 wall columns → 2, then the intro stacks above the wall ── */
+@media (max-width: 1023px) {
+  .tw__wall { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .tw__col:nth-child(3) { display: none; }
+}
+@media (max-width: 767px) {
+  .tw__stage {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    padding-top: 72px;
+  }
+  .tw__intro {
+    flex: 0 0 auto;
+    text-align: center;
+    padding-bottom: 22px;
+  }
+  .tw__lead { margin-left: auto; margin-right: auto; }
+  .tw__rating { justify-content: center; }
+  .tw__wall {
+    flex: 1 1 auto;
+    align-self: auto;
+    gap: 12px;
+  }
+  .tw__set { gap: 12px; padding-bottom: 12px; }
+  .tw-card { border-radius: 18px; padding: 18px 16px; }
+}

@@ -11,7 +11,10 @@
 
   function init() {
     const wheel = document.getElementById("section-cinematic-project");
-    const above = document.getElementById("section-manifesto");
+    /* the manifesto copy placed right before the wheel (falls back to the original) */
+    const host = wheel && wheel.parentElement.classList.contains("pin-spacer") ? wheel.parentElement : wheel;
+    const prev = host && host.previousElementSibling;
+    const above = prev && prev.classList.contains("mf") ? prev : document.getElementById("section-manifesto");
     if (!wheel || !above) return;
 
     const band = document.createElement("div");

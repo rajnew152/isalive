@@ -52,18 +52,22 @@ html.light #section-cinematic-project,
 html.light #section-cinematic-project > div { background-color: #fff0ee; }
 html.light #section-cinematic-project > div > .pointer-events-none.absolute.inset-0:first-child {
   background:
-    radial-gradient(circle at 50% 22%, rgba(255, 150, 185, 0.34), transparent 40%),
-    radial-gradient(circle at 22% 40%, rgba(255, 170, 170, 0.26), transparent 36%),
-    radial-gradient(circle at 80% 40%, rgba(255, 190, 170, 0.24), transparent 36%),
-    linear-gradient(180deg, #f4e9ee 0%, #fbe7ec 18%, #ffece8 40%, #fff3ef 70%, #fdf9fb 100%);
+    radial-gradient(circle at 50% 22%, rgba(247, 54, 121, 0.30), transparent 42%),
+    radial-gradient(circle at 22% 40%, rgba(227, 69, 196, 0.20), transparent 38%),
+    radial-gradient(circle at 80% 40%, rgba(255, 122, 69, 0.22), transparent 38%),
+    linear-gradient(180deg, #fdf9fb 0%, #f9dfe7 18%, #fbe0e2 40%, #fdeceb 70%, #fdf9fb 100%);
 }
+/* the glass segments were nearly invisible (inline .light rule: opacity .05);
+   a little more body so the wheel and its dividers read against the wash */
+html.light #section-cinematic-project .cps-wheel-glass { opacity: 0.13; }
 html.light #section-cinematic-project .light\:text-\[\#1e1442\] {
   background: linear-gradient(90deg, #f2167c, #ff2d1e);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
 }
-html.light #section-cinematic-project .light\:text-\[\#4b4560\]\/85 { color: rgba(236, 50, 80, 0.85); }
+/* descriptions: a deep rose instead of light pink-on-pink, for readable contrast */
+html.light #section-cinematic-project .light\:text-\[\#4b4560\]\/85 { color: #8f2352; }
 
 /* dark sections: deeper blacks as in the reference */
 .tk, .tk__container { background: #151519; }
@@ -82,6 +86,8 @@ html.light #section-cinematic-project .light\:text-\[\#4b4560\]\/85 { color: rgb
 /* Toolkit cover (the transition card's fill that grows over the stage before the
    ROI calculator fades in): the ROI stage's own light background, not the cream */
 :root { --tk-cover: #fdf9fb; }
+/* night theme: the cover is the manifesto's dark top (--mf-above) instead of white */
+html:not(.light) { --tk-cover: #000000; }
 
 /* header contrast (js/theme.js sets bp-hdr-on-dark / bp-hdr-on-light from the
    section behind the header): readable Menu / Get in touch / theme controls */
@@ -123,3 +129,49 @@ html.light #section-cinematic-project > div::after {
 html.light #section-cinematic-project .bg-gradient-to-t.light\:from-white {
   background-image: linear-gradient(to top, #fdf9fb, rgba(253, 249, 251, 0.9), transparent);
 }
+
+/* manifesto (now between the Platform deck and the ROI calculator, light theme): it ends on
+   the page colour the ROI section starts on; the wheel-top feather band (js/section-seams.js)
+   reads the same token, which also matches the feature section now above the wheel */
+html.light .mf { --mf-below: #fdf9fb; }
+
+/* industries wheel segments: the feature cards' colour way — orange at the top
+   corner, hot red through the middle, magenta at the bottom — on every segment
+   (each glass path gets the gradient across its own box), with white copy */
+#section-cinematic-project .cps-wheel-glass,
+html.light #section-cinematic-project .cps-wheel-glass { opacity: 0.8; }
+#section-cinematic-project #cinematicGlassBase stop:nth-child(1) { stop-color: #ff8a5c; stop-opacity: 1; }
+#section-cinematic-project #cinematicGlassBase stop:nth-child(2) { stop-color: #e44fb5; stop-opacity: 1; }
+#section-cinematic-project #cinematicColorBleed stop:nth-child(1) { stop-color: #ff9a6a; stop-opacity: 0.45; }
+#section-cinematic-project #cinematicColorBleed stop:nth-child(2) { stop-color: #f2475f; stop-opacity: 0.55; }
+#section-cinematic-project #cinematicColorBleed stop:nth-child(3) { stop-color: #e44fb5; stop-opacity: 0.35; }
+#section-cinematic-project .cps-wheel-divider,
+html.light #section-cinematic-project .cps-wheel-divider { stroke: rgba(255, 255, 255, 0.55); stroke-opacity: 1; }
+#section-cinematic-project .cps-wheel-hairline,
+html.light #section-cinematic-project .cps-wheel-hairline { stroke: #ffffff; stroke-opacity: 0.25; }
+/* copy on the segments */
+#section-cinematic-project [data-cinematic-wheel-detail] h3,
+html.light #section-cinematic-project .light\:text-\[\#1e1442\] {
+  background: none;
+  -webkit-background-clip: border-box;
+  background-clip: border-box;
+  color: #ffffff;
+}
+#section-cinematic-project [data-cinematic-wheel-detail] p,
+html.light #section-cinematic-project .light\:text-\[\#4b4560\]\/85 { color: rgba(255, 255, 255, 0.88); }
+#section-cinematic-project [data-cinematic-wheel-detail] .bg-gradient-to-r { background: rgba(255, 255, 255, 0.7); }
+
+/* industries wheel, NIGHT theme only (html.dark): deep wine glass segments with a
+   soft magenta glow, faint rose dividers, white titles and muted copy. The day
+   theme keeps the coral → pink gradient above. */
+html.dark #section-cinematic-project .cps-wheel-glass { opacity: 1; }
+html.dark #section-cinematic-project #cinematicGlassBase stop:nth-child(1) { stop-color: #5a0f3a; stop-opacity: 0.92; }
+html.dark #section-cinematic-project #cinematicGlassBase stop:nth-child(2) { stop-color: #2a0619; stop-opacity: 0.9; }
+html.dark #section-cinematic-project #cinematicColorBleed stop:nth-child(1) { stop-color: #b0185f; stop-opacity: 0.32; }
+html.dark #section-cinematic-project #cinematicColorBleed stop:nth-child(2) { stop-color: #7a1242; stop-opacity: 0.22; }
+html.dark #section-cinematic-project #cinematicColorBleed stop:nth-child(3) { stop-color: #1a0410; stop-opacity: 0.1; }
+html.dark #section-cinematic-project .cps-wheel-divider { stroke: rgba(236, 72, 140, 0.2); stroke-opacity: 1; }
+html.dark #section-cinematic-project .cps-wheel-hairline { stroke: #ff7ab0; stroke-opacity: 0.18; }
+html.dark #section-cinematic-project [data-cinematic-wheel-detail] h3 { color: #ffffff; }
+html.dark #section-cinematic-project [data-cinematic-wheel-detail] p { color: rgba(255, 228, 238, 0.72); }
+html.dark #section-cinematic-project [data-cinematic-wheel-detail] .bg-gradient-to-r { background: linear-gradient(90deg, #ff8a5c, #ff4f8b 60%, transparent); }

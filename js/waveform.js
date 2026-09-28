@@ -16,7 +16,7 @@
 
     function resize() {
       const w = Math.max(1, Math.floor(wrapper.offsetWidth));
-      const dpr = window.devicePixelRatio || 1;
+      const dpr = Math.min(window.devicePixelRatio || 1, 2); // 3-4x phone DPRs cost 2-4x the pixels for no visible gain
       size = w;
       canvas.width = w * dpr; canvas.height = w * dpr;
       canvas.style.width = w + "px"; canvas.style.height = w + "px";

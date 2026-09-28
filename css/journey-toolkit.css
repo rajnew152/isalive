@@ -83,7 +83,7 @@
 .tk__pin-height { height: 700vh; }
 /* art-direction deck only (tools/brand-content.js drops the front-end deck): the
    art phases keep the scroll length they had inside the full 700vh sequence */
-.tk--art-only .tk__pin-height { height: 415vh; }
+.tk--art-only .tk__pin-height { height: 330vh; } /* includes a hold with the fan fully open (js/toolkit.js) */
 .tk__container {
   position: relative;
   z-index: 1;
@@ -441,12 +441,14 @@
 .lia-globe3d-on .footer-globe-wash,
 .lia-globe3d-on .footer-globe-shade { display: none; }
 .lia-globe3d-canvas {
+  /* lives in #section-footer (not the clipped globe circle): centred like the
+     holder, width / height / bottom set by js/globe-3d.js, under the links (z-20) */
   position: absolute;
-  left: 0;
-  top: 0;
-  width: 100%;
-  height: 24%;
-  pointer-events: auto;   /* the holder is pointer-events-none; the canvas drags */
+  left: 50%;
+  bottom: 0;
+  z-index: 1;
+  transform: translateX(-50%);
+  pointer-events: auto;   /* the canvas drags; the links above it stay clickable */
   cursor: grab;
   touch-action: pan-y;    /* horizontal drag spins, vertical scroll still works */
 }

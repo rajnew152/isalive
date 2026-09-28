@@ -47,7 +47,7 @@
       if (el.closest("#staggered-menu")) continue;
       const cs = getComputedStyle(el);
       if (cs.visibility === "hidden" || parseFloat(cs.opacity) < 0.5) continue;
-      if (el.tagName === "CANVAS") return el.classList.contains("tk-card__cream") ? "light" : null;
+      if (el.tagName === "CANVAS") return el.classList.contains("tk-card__cream") ? (root.classList.contains("light") ? "light" : "dark") : null;
       if (el.tagName === "IMG" || el.tagName === "VIDEO") return null;
       const c = cs.backgroundColor.match(/[\d.]+/g);
       if (c && (c.length < 4 || +c[3] >= 0.5)) {

@@ -11,20 +11,29 @@
 (function () {
   "use strict";
 
-  /* the reference component's props on that page (dark variant) */
-  const DOT_DENSITY = 80000;          // land candidates = 3x this
-  const BASE_SIZE = 5, SIZE_RANDOM = 1;
-  const ROT_SPEED = 0.06;
-  /* colours in the site's warm palette (brand pink → magenta, coral accents)
-     instead of the reference's silver / white / blue */
-  const OCEAN_HI = [0.788, 0.227, 0.447];   // #C93A72 lit side + rim glow (deep brand pink)
-  const OCEAN_DARK = [0.051, 0.016, 0.035]; // #0D0409 shadow side (warm black)
-  const OCEAN_LIGHT = [0.420, 0.114, 0.290]; // #6B1D4A drifting magenta tint
-  const DOT_COLOR = [1.000, 0.902, 0.937];   // #FFE6EF pink-white land dots
+  /* "night earth" look (after dribbble.com/shots/26986637-Interactive-Globe): a
+     near-black planet seen from below its horizon, a thin bright atmosphere line
+     along the limb that bleeds softly into the sky, faint orbit rings around it,
+     sparse twinkling city lights on the land, a slow spin and a gentle parallax
+     tilt that follows the pointer. Colours are the site's pink / magenta family
+     where the reference is blue. */
+  const DOT_DENSITY = 18000;          // land candidates = 3x this (sparse city lights)
+  const BASE_SIZE = 4.2, SIZE_RANDOM = 0.9;
+  const ROT_SPEED = 0.05;
+  const OCEAN_HI = [1.000, 0.302, 0.553];   // #FF4D8D limb / atmosphere (hot pink)
+  const OCEAN_DARK = [0.024, 0.008, 0.039]; // #060210 the planet's night side
+  const OCEAN_LIGHT = [0.165, 0.039, 0.118]; // #2A0A1E faint plum lift towards the top
+  const DOT_COLOR = [1.000, 0.878, 0.925];   // #FFE0EC pink-white city lights
   const HOVER_COLOR = [1.000, 0.580, 0.471]; // #FF9478 coral under the pointer
+  const GLOW = [0.969, 0.212, 0.475];        // #F73679 sky glow / rings (brand pink)
+  const PARALLAX = { x: 0.22, y: 0.12 };     // radians of tilt at the screen edges
   const LENS = { radius: 0.45, mag: 0.06, bulge: 0.06, scale: 1.6 };
   const CAM_Z = 2.9, FOV = 40 * Math.PI / 180, RADIUS = 0.99;
   const BAND = 0.24, MAX_W = 2600;
+  /* sky headroom above the horizon (fraction of the holder width): the canvas is
+     placed in the footer section, not inside the clipped globe circle, so the
+     atmosphere and the orbit rings can bleed above the limb */
+  const HEAD = 0.16;
   /* the sphere renders in a square this fraction of the 160vw holder wide
      (0.6 ≈ 96vw on screen), centred — small enough that its curvature reads
      as a real globe instead of a flat horizon */
@@ -78,20 +87,49 @@
     void main(){
       vec3 normal = normalize(vNormal);
       vec3 viewDir = normalize(-vPosition);
-      vec3 lightDir = normalize(vec3(1.0, -0.2, 0.5));
-      float ndotl = dot(normal, lightDir);
-      float rightSide = smoothstep(-0.5, 1.0, ndotl);
-      float n1 = snoise(normal * 2.0 + uTime * 0.15) * 0.5 + 0.5;
-      float n2 = snoise(normal * 4.0 - uTime * 0.1) * 0.5 + 0.5;
-      float mixVal = rightSide * 0.7 + n1 * 0.3;
-      vec3 base = mix(uColorHighlight, uColorDark, smoothstep(0.1, 0.9, mixVal));
-      base = mix(base, uColorLight, n2 * 0.2);
-      float rim = 1.0 - max(dot(viewDir, normal), 0.0);
-      float rimNoise = snoise(normal * 12.0 + uTime * 0.2) * 0.5 + 0.5;
-      float rimStrength = smoothstep(0.65 - rimNoise * 0.1, 0.85, rim);
-      vec3 finalColor = mix(base, uColorHighlight, rimStrength * 0.6);
+      float ndv = max(dot(viewDir, normal), 0.0);
+      /* night side: almost black, a faint plum lift towards the top of the disc
+         with slow drifting cloud noise so the surface is not flat */
+      float top = smoothstep(-0.4, 1.0, normal.y);
+      float n1 = snoise(normal * 3.0 + uTime * 0.06) * 0.5 + 0.5;
+      vec3 base = mix(uColorDark, uColorLight, top * 0.45 + n1 * 0.15);
+      /* atmosphere: a thin bright line right at the limb plus a wider soft
+         fresnel band inside it, both strongest at the top of the visible arc */
+      float fres = pow(1.0 - ndv, 3.0);
+      float limb = smoothstep(0.86, 1.0, 1.0 - ndv);
+      float rimNoise = snoise(normal * 10.0 + uTime * 0.15) * 0.5 + 0.5;
+      float weight = 0.55 + 0.45 * top;
+      vec3 finalColor = base + uColorHighlight * (fres * 0.32 + limb * (0.9 + rimNoise * 0.3)) * weight;
       float easeAppear = 1.0 - pow(1.0 - clamp(uAppear * 1.5, 0.0, 1.0), 3.0);
       gl_FragColor = vec4(finalColor, easeAppear);
+    }`;
+
+  /* ---- sky: the atmosphere bleeding past the limb + faint orbit rings, drawn
+     as a full-canvas quad in additive blending before the planet ---- */
+  const SKY_VS = `
+    attribute vec2 aPos;
+    void main(){ gl_Position = vec4(aPos, 0.0, 1.0); }`;
+  const SKY_FS = `
+    precision highp float;
+    uniform vec2 uCenter; uniform float uRadius, uTime, uAppear;
+    uniform vec3 uGlow;
+    void main(){
+      vec2 dir = (gl_FragCoord.xy - uCenter) / uRadius;
+      float d = length(dir);                       /* 1.0 at the limb */
+      float outside = smoothstep(0.99, 1.005, d);
+      float top = smoothstep(-0.25, 1.0, dir.y);   /* brightest above the horizon */
+      float halo = exp(-(d - 1.0) * 45.0) * outside;            /* tight bright edge */
+      float glow = exp(-(d - 1.0) * 4.5) * outside;             /* wide soft bleed */
+      float breathe = 0.92 + 0.08 * sin(uTime * 0.8);
+      /* orbit rings: thin concentric lines, fading with distance, drifting slowly */
+      float rings = 0.0;
+      for (int i = 1; i <= 6; i++) {
+        float rr = 1.0 + float(i) * 0.14 + 0.01 * sin(uTime * 0.3 + float(i));
+        rings += 1.0 - smoothstep(0.0, 0.0045 + 0.001 * float(i), abs(d - rr));
+      }
+      rings *= 0.13 * (1.0 - smoothstep(1.0, 2.1, d)) * (0.35 + 0.65 * top);
+      float a = (halo * 0.95 + glow * 0.7 * top) * breathe + rings;
+      gl_FragColor = vec4(uGlow * a, clamp(a, 0.0, 1.0) * uAppear);
     }`;
 
   /* ---- land dots: verbatim port (assembly, pulse, hover lens) ---- */
@@ -126,11 +164,12 @@
       }
       vec4 mvPosition = uMV * vec4(pos, 1.0);
       gl_Position = uProj * mvPosition;
-      float pulse = sin(uTime * 2.0 + aRandom * 10.0) * 0.15 + 0.85;
+      /* city lights: each dot twinkles on its own slow rhythm */
+      float pulse = sin(uTime * 1.4 + aRandom * 60.0) * 0.5 + 0.5;
       float scale = 1.0 + (effect * uLensScale * uHoverActive);
       scale *= easeP;
-      gl_PointSize = (aSize * scale * pulse) * (uPx / -mvPosition.z);
-      vAlpha = 0.4 + 0.6 * aRandom;
+      gl_PointSize = (aSize * scale * (0.7 + 0.5 * pulse)) * (uPx / -mvPosition.z);
+      vAlpha = (0.25 + 0.75 * aRandom) * (0.45 + 0.55 * pulse);
     }`;
   const DOTS_FS = `
     precision highp float;
@@ -247,24 +286,36 @@
     canvas.setAttribute("aria-hidden", "true");
     const gl = canvas.getContext("webgl", { alpha: true, antialias: true, premultipliedAlpha: false });
     if (!gl) return;
-    holder.appendChild(canvas);
+    /* the circle holder (160vw, translateY(86%)) clips at the horizon; the canvas
+       sits in the section instead, matching the holder's width and bottom edge
+       (+HEAD headroom above), so the sky can extend past the limb */
+    section.appendChild(canvas);
     holder.classList.add("lia-globe3d-on");
 
     const oceanP = program(gl, OCEAN_VS, OCEAN_FS);
     const dotsP = program(gl, DOTS_VS, DOTS_FS);
+    const skyP = program(gl, SKY_VS, SKY_FS);
     const sph = buildSphere(128); /* dense mesh: a clean round silhouette at this size */
     const buf = (data, target) => { const b = gl.createBuffer(); gl.bindBuffer(target || gl.ARRAY_BUFFER, b); gl.bufferData(target || gl.ARRAY_BUFFER, data, gl.STATIC_DRAW); return b; };
     const bSphere = buf(sph.v), bIdx = buf(sph.idx, gl.ELEMENT_ARRAY_BUFFER);
+    const bQuad = buf(new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]));
     const bPos = buf(dots.pos), bSize = buf(dots.size), bRnd = buf(dots.rnd);
     const U = (p, n) => gl.getUniformLocation(p, n), A = (p, n) => gl.getAttribLocation(p, n);
 
-    let D = 0, cw = 0, chh = 0, S = 0;
+    let D = 0, cw = 0, chh = 0, S = 0, headPx = 0;
     function resize() {
       D = holder.clientWidth || 1;
-      cw = Math.min(MAX_W, Math.round(D * Math.min(window.devicePixelRatio || 1, 1.5)));
-      chh = Math.max(1, Math.round(D * BAND * (cw / D)));
+      const k = Math.min(window.devicePixelRatio || 1, 1.5);
+      cw = Math.min(MAX_W, Math.round(D * k));
+      headPx = Math.round(D * HEAD * (cw / D));
+      chh = Math.max(1, Math.round(D * BAND * (cw / D)) + headPx);
       S = Math.round(cw * SPHERE_W); /* the square viewport the sphere fills */
       canvas.width = cw; canvas.height = chh;
+      /* CSS box: the holder's width, its top edge (section bottom − 0.14·D) minus
+         the headroom, down to 0.10·D below the section (clipped, as before) */
+      canvas.style.width = D + "px";
+      canvas.style.height = (D * (BAND + HEAD)) + "px";
+      canvas.style.bottom = (-0.10 * D) + "px";
     }
     resize();
     new ResizeObserver(resize).observe(holder);
@@ -286,6 +337,14 @@
     const end = () => { dragging = false; };
     canvas.addEventListener("pointerup", end);
     canvas.addEventListener("pointercancel", end);
+
+    /* parallax: the planet tilts a little towards the pointer anywhere on the page */
+    let parTX = 0, parTY = 0, parX = 0, parY = 0;
+    window.addEventListener("pointermove", (e) => {
+      if (e.pointerType === "touch") return;
+      parTX = (e.clientX / window.innerWidth - 0.5) * 2 * PARALLAX.x;
+      parTY = (e.clientY / window.innerHeight - 0.5) * 2 * PARALLAX.y;
+    }, { passive: true });
 
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -342,16 +401,37 @@
         pe += B.x; I += B.y; B.x *= 0.95; B.y *= 0.95;
       }
       I = Math.max(-0.6, Math.min(0.6, I));
-      rotY += (pe - rotY) * 0.1;
-      rotX += (I - rotX) * 0.1;
+      if (!reduced) { parX += (parTX - parX) * 0.04; parY += (parTY - parY) * 0.04; }
+      rotY += (pe + parX - rotY) * 0.1;
+      rotX += (I + parY - rotX) * 0.1;
       computeMV();
 
-      gl.viewport(Math.round((cw - S) / 2), chh - S, S, S);
       gl.clearColor(0, 0, 0, 0);
       gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+      /* sky: additive glow + rings over the whole canvas, before the planet */
+      gl.viewport(0, 0, cw, chh);
+      gl.disable(gl.DEPTH_TEST);
+      gl.enable(gl.BLEND);
+      gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+      gl.useProgram(skyP);
+      /* the sphere's silhouette in canvas pixels: centre of the square viewport,
+         radius from the camera geometry (tan(asin(r/d)) * f, in half-viewport units) */
+      const rNdc = Math.tan(Math.asin((RADIUS * scl) / CAM_Z)) * f;
+      gl.uniform2f(U(skyP, "uCenter"), cw / 2, chh - headPx - S / 2);
+      gl.uniform1f(U(skyP, "uRadius"), rNdc * S / 2);
+      gl.uniform1f(U(skyP, "uTime"), time);
+      gl.uniform1f(U(skyP, "uAppear"), appear);
+      gl.uniform3fv(U(skyP, "uGlow"), GLOW);
+      const aQ = A(skyP, "aPos");
+      gl.bindBuffer(gl.ARRAY_BUFFER, bQuad);
+      gl.enableVertexAttribArray(aQ);
+      gl.vertexAttribPointer(aQ, 2, gl.FLOAT, false, 0, 0);
+      gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+
+      gl.viewport(Math.round((cw - S) / 2), chh - headPx - S, S, S);
       gl.enable(gl.DEPTH_TEST);
       gl.depthFunc(gl.LEQUAL);
-      gl.enable(gl.BLEND);
       /* colour blends normally; alpha accumulates (ONE, 1-a) so a translucent dot
          over the opaque sphere keeps the canvas opaque there — with plain
          SRC_ALPHA on alpha too, every dot punched a hole to the black page and
@@ -384,7 +464,7 @@
       gl.uniform1f(U(dotsP, "uAppear"), appear);
       gl.uniform3fv(U(dotsP, "uColor"), DOT_COLOR);
       gl.uniform3fv(U(dotsP, "uHoverColor"), HOVER_COLOR);
-      gl.uniform1f(U(dotsP, "uOpacity"), 1);
+      gl.uniform1f(U(dotsP, "uOpacity"), 0.9);
       gl.uniform3fv(U(dotsP, "uHoverPos"), [0, 0, 0]);
       gl.uniform1f(U(dotsP, "uHoverActive"), 0); /* hover lens disabled */
       gl.uniform1f(U(dotsP, "uHoverRadius"), LENS.radius);
